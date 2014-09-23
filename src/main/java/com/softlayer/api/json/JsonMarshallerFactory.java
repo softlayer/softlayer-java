@@ -18,4 +18,6 @@ public abstract class JsonMarshallerFactory {
         }
         return factory;
     }
+    
+    public abstract JsonMarshaller getJsonMarshaller();
 }

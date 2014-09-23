@@ -1,6 +1,8 @@
 package com.softlayer.api.http;
 
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 public abstract class HttpClientFactory {
@@ -17,4 +19,7 @@ public abstract class HttpClientFactory {
         }
         return factory;
     }
+
+    public abstract HttpClient getHttpClient(HttpCredentials credentials, String method,
+            String fullUrl, Map<String, List<String>> headers);
 }
