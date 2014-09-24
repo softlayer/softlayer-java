@@ -19,8 +19,7 @@ class BuiltInHttpClientFactory extends HttpClientFactory {
     @Override
     public HttpClient getHttpClient(HttpCredentials credentials, String method,
             String fullUrl, Map<String, List<String>> headers) {
-        // TODO Auto-generated method stub
-        return null;
+        return new BuiltInHttpClient(credentials, method, fullUrl, headers);
     }
 
     static class BuiltInHttpClient implements HttpClient, HttpResponse {
@@ -111,7 +110,11 @@ class BuiltInHttpClientFactory extends HttpClientFactory {
         @Override
         public InputStream getInputStream() {
             try {
-                return connection.getInputStream();
+                if (connection.getResponseCode() == 200) {
+                    return connection.getInputStream();
+                } else {
+                    return connection.getErrorStream();
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -1,14 +1,18 @@
 package com.softlayer.api;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiService;
@@ -24,6 +28,12 @@ public class RestApiClient implements ApiClient {
     public static final String BASE_URL = "https://api.softlayer.com/rest/v3.1/";
     
     static final String BASE_PKG = Entity.class.getPackage().getName();
+    
+    static final Map<String, List<String>> HEADERS;
+    
+    static {
+        HEADERS = Collections.singletonMap("X-SoftLayer-Include-API-Types", Collections.singletonList("true"));
+    }
     
     private final String baseUrl;
     private HttpClientFactory httpClientFactory;
@@ -71,8 +81,8 @@ public class RestApiClient implements ApiClient {
         this.loggingEnabled = loggingEnabled;
     }
     
-    public RestApiClient withLoggingEnabled(boolean loggingEnabled) {
-        this.loggingEnabled = loggingEnabled;
+    public RestApiClient withLoggingEnabled() {
+        this.loggingEnabled = true;
         return this;
     }
     
@@ -119,7 +129,7 @@ public class RestApiClient implements ApiClient {
         }
     }
     
-    protected String getFullUrlFromMethodName(String serviceName, String methodName, Long id) {
+    protected String getFullUrl(String serviceName, String methodName, Long id, String maskString) {
         StringBuilder url = new StringBuilder(baseUrl + serviceName);
         // ID present? add it
         if (id != null) {
@@ -128,15 +138,23 @@ public class RestApiClient implements ApiClient {
         // Some method names are not included, others can have the "get" stripped
         if (methodName.startsWith("get")) {
             url.append('/').append(methodName.substring(3));
-        } else if (!"deleteObject".equals(methodName) && !"createObject".equals(methodName) &&
-                !"createObjects".equals(methodName) && !"editObject".equals(methodName) &&
-                !"editObjects".equals(methodName)) {
+        } else if (!"getObject".equals(methodName) && !"deleteObject".equals(methodName) &&
+                !"createObject".equals(methodName) && !"createObjects".equals(methodName) &&
+                !"editObject".equals(methodName) && !"editObjects".equals(methodName)) {
             url.append('/').append(methodName);
         }
-        return url.append(".json").toString();
+        url.append(".json");
+        if (maskString != null && !maskString.isEmpty()) {
+            try {
+                url.append("?objectMask=").append(URLEncoder.encode(maskString, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return url.toString();
     }
     
-    protected void log(String httpMethod, String url, Object[] params) {
+    protected void logRequest(String httpMethod, String url, Object[] params) {
         // Build JSON
         String body = "";
         if (params != null && params.length > 0) {
@@ -149,7 +167,11 @@ public class RestApiClient implements ApiClient {
                 throw new RuntimeException(e);
             }
         }
-        System.out.format("Running %s on %s with body: %s", httpMethod, url, body);
+        System.out.format("Running %s on %s with body: %s\n", httpMethod, url, body);
+    }
+    
+    protected void logResponse(String url, int statusCode, String body) {
+        System.out.format("Got %d on %s with body: %s\n", statusCode, url, body);
     }
 
     @Override
@@ -162,6 +184,7 @@ public class RestApiClient implements ApiClient {
 
     class ServiceProxy<M extends Mask, A extends ServiceAsync<M>, S extends Service<M, A>>
             implements InvocationHandler {
+        
         final Class<S> serviceClass;
         final Class<A> asyncClass;
         final Class<M> maskClass;
@@ -224,13 +247,13 @@ public class RestApiClient implements ApiClient {
                 String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
                 String httpMethod = getHttpMethodFromMethodName(methodName);
                 Long methodId = methodInfo.instanceRequired() ? this.id : null;
-                String url = getFullUrlFromMethodName(
-                        serviceClass.getAnnotation(ApiService.class).value(), methodName, methodId);
+                String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
+                        methodName, methodId, mask == null ? maskString : mask.getMask());
                 HttpClient client = getHttpClientFactory().getHttpClient(credentials,
-                        httpMethod, url, Collections.<String, List<String>>emptyMap());
+                        httpMethod, url, HEADERS);
                 // Log if enabled
                 if (loggingEnabled) {
-                    log(httpMethod, url, args);
+                    logRequest(httpMethod, url, args);
                 }
                 // If there are parameters write em
                 if (args != null && args.length > 0) {
@@ -238,16 +261,37 @@ public class RestApiClient implements ApiClient {
                 }
                 // Invoke with response
                 HttpResponse response = client.invokeSync();
+                // Log...
+                InputStream stream = response.getInputStream();
+                if (loggingEnabled) {
+                    InputStream newStream;
+                    Scanner scanner = null;
+                    try {
+                        scanner = new Scanner(stream, "UTF-8").useDelimiter("\\A");
+                        String body = scanner.hasNext() ? scanner.next() : "";
+                        logResponse(url, response.getStatusCode(), body);
+                        newStream = new ByteArrayInputStream(body.getBytes("UTF-8"));
+                    } finally {
+                        try {
+                            if (scanner != null) {
+                                scanner.close();
+                            }
+                        } catch (Exception e) { }
+                        try {
+                            stream.close();
+                        } catch (Exception e) { }
+                    }
+                    stream = newStream;
+                }
                 // If it's not a 200, we have a problem
                 if (response.getStatusCode() != 200) {
                     // Extract error and throw
                     Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
-                            fromJson(Map.class, response.getInputStream());
+                            fromJson(Map.class, stream);
                     throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
                 }
                 // Just return the serialized response
-                return getJsonMarshallerFactory().getJsonMarshaller().fromJson(method.getReturnType(),
-                        response.getInputStream());
+                return getJsonMarshallerFactory().getJsonMarshaller().fromJson(method.getReturnType(), stream);
             } else if (ServiceAsync.class.isAssignableFrom(method.getDeclaringClass())) {
                 throw new UnsupportedOperationException();
             } else {
