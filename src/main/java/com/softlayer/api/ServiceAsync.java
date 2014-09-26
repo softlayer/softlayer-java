@@ -1,5 +1,6 @@
 package com.softlayer.api;
 
-public interface ServiceAsync<M extends Mask> extends Maskable<M> {
+/** Asynchronous service interface extended by individual async service interfaces */
+public interface ServiceAsync extends Maskable {
 
 }

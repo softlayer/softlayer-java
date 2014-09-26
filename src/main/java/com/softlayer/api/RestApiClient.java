@@ -23,6 +23,7 @@ import com.softlayer.api.http.HttpResponse;
 import com.softlayer.api.json.JsonMarshallerFactory;
 import com.softlayer.api.temp.Entity;
 
+/** Implementation of API client for http://sldn.softlayer.com/article/REST */
 public class RestApiClient implements ApiClient {
 
     public static final String BASE_URL = "https://api.softlayer.com/rest/v3.1/";
@@ -176,68 +177,53 @@ public class RestApiClient implements ApiClient {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <M extends Mask, A extends ServiceAsync<M>, S extends Service<M, A>> S createService(
-            Class<S> serviceClass, Class<A> asyncClass, Class<M> maskClass, Long id) {
+    public <S extends Service> S createService(Class<S> serviceClass, Long id) {
         return (S) Proxy.newProxyInstance(getClass().getClassLoader(),
-                new Class<?>[] { serviceClass }, new ServiceProxy<M, A, S>(serviceClass, asyncClass, maskClass, id));
+                new Class<?>[] { serviceClass }, new ServiceProxy<S>(serviceClass, id));
     }
 
-    class ServiceProxy<M extends Mask, A extends ServiceAsync<M>, S extends Service<M, A>>
+    class ServiceProxy<S extends Service>
             implements InvocationHandler {
         
         final Class<S> serviceClass;
-        final Class<A> asyncClass;
-        final Class<M> maskClass;
         final Long id;
-        M mask;
+        Mask mask;
         String maskString;
         
-        public ServiceProxy(Class<S> serviceClass, Class<A> asyncClass, Class<M> maskClass, Long id) {
+        public ServiceProxy(Class<S> serviceClass, Long id) {
             this.serviceClass = serviceClass;
-            this.asyncClass = asyncClass;
-            this.maskClass = maskClass;
             this.id = id;
-        }
-        
-        @SuppressWarnings("unchecked")
-        protected A asAsync() {
-            ServiceProxy<M, A, S> proxy = new ServiceProxy<M, A, S>(serviceClass, asyncClass, maskClass, id);
-            proxy.mask = mask;
-            proxy.maskString = maskString;
-            return (A) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { asyncClass }, proxy);
-        }
-        
-        @SuppressWarnings("unchecked")
-        protected Object maskInvocation(Method method, Object argument) throws Exception {
-            if ("withNewMask".equals(method.getName())) {
-                mask = maskClass.newInstance();
-                maskString = null;
-                return mask;
-            } else if ("withMask".equals(method.getName())) {
-                if (mask == null) {
-                    mask = maskClass.newInstance();
-                    maskString = null;
-                }
-                return mask;
-            } else if ("setMask".equals(method.getName()) && argument instanceof String) {
-                mask = null;
-                maskString = argument.toString();
-                return null;
-            } else if ("setMask".equals(method.getName()) && argument instanceof Mask) {
-                mask = (M) argument;
-                maskString = null;
-                return null;
-            } else {
-                throw new RuntimeException("Unrecognized method: " + method);
-            }
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if ("asAsync".equals(method.getName()) && method.getDeclaringClass() == Service.class) {
-                return asAsync();
-            } else if (method.getDeclaringClass() == Maskable.class) {
-                return maskInvocation(method, args == null || args.length == 0 ? null : args[0]);
+            boolean noParams = args == null || args.length == 0;
+            if ("asAsync".equals(method.getName()) && noParams) {
+                ServiceProxy<S> asyncProxy = new ServiceProxy<S>(serviceClass, id);
+                asyncProxy.mask = mask;
+                asyncProxy.maskString = maskString;
+                return Proxy.newProxyInstance(getClass().getClassLoader(),
+                    new Class<?>[] { method.getReturnType() }, asyncProxy);
+            } else if ("withNewMask".equals(method.getName()) && noParams) {
+                mask = (Mask) method.getReturnType().newInstance();
+                maskString = null;
+                return mask;
+            } else if ("withMask".equals(method.getName()) && noParams) {
+                if (mask == null) {
+                    mask = (Mask) method.getReturnType().newInstance();
+                    maskString = null;
+                }
+                return mask;
+            } else if ("setMask".equals(method.getName()) && args != null
+                    && args.length == 1 && args[0] instanceof String) {
+                mask = null;
+                maskString = args[0].toString();
+                return null;
+            } else if ("setMask".equals(method.getName()) && args != null
+                    && args.length == 1 && args[0] instanceof Mask) {
+                mask = (Mask) args[0];
+                maskString = null;
+                return null;
             } else if (Service.class.isAssignableFrom(method.getDeclaringClass())) {
                 ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
                 // Must have ID if instance is required
@@ -257,7 +243,12 @@ public class RestApiClient implements ApiClient {
                 }
                 // If there are parameters write em
                 if (args != null && args.length > 0) {
-                    writeParameterHttpBody(args, client.getBodyStream());
+                    OutputStream outStream = client.getBodyStream();
+                    try {
+                        writeParameterHttpBody(args, outStream);
+                    } finally {
+                        try { outStream.close(); } catch (Exception e) { }
+                    }
                 }
                 // Invoke with response
                 HttpResponse response = client.invokeSync();
@@ -283,15 +274,19 @@ public class RestApiClient implements ApiClient {
                     }
                     stream = newStream;
                 }
-                // If it's not a 200, we have a problem
-                if (response.getStatusCode() != 200) {
-                    // Extract error and throw
-                    Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
-                            fromJson(Map.class, stream);
-                    throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
+                try {
+                    // If it's not a 200, we have a problem
+                    if (response.getStatusCode() != 200) {
+                        // Extract error and throw
+                        Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
+                                fromJson(Map.class, stream);
+                        throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
+                    }
+                    // Just return the serialized response
+                    return getJsonMarshallerFactory().getJsonMarshaller().fromJson(method.getReturnType(), stream);
+                } finally {
+                    try { stream.close(); } catch (Exception e) { }
                 }
-                // Just return the serialized response
-                return getJsonMarshallerFactory().getJsonMarshaller().fromJson(method.getReturnType(), stream);
             } else if (ServiceAsync.class.isAssignableFrom(method.getDeclaringClass())) {
                 throw new UnsupportedOperationException();
             } else {

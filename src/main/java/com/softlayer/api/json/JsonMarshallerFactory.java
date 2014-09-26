@@ -13,7 +13,7 @@ public abstract class JsonMarshallerFactory {
 
     static JsonMarshallerFactory getDefault(boolean cache) {
         // We don't mind the race condition that can occur by possibly creating multiple factories. We make
-        //  no guarantees that there is only one factory even when cache is true
+        //  no guarantees that there is only one factory ever created even when cache is true
         JsonMarshallerFactory result = cache ? defaultFactory : null;
         if (result == null) {
             Iterator<JsonMarshallerFactory> iterator = ServiceLoader.load(JsonMarshallerFactory.class).iterator();

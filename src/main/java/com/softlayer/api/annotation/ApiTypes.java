@@ -12,5 +12,6 @@ import com.softlayer.api.temp.Entity;
 @Target(ElementType.PACKAGE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiTypes {
+    /** Collection of every type that extends {@link Entity} no matter how deep. */
     Class<? extends Entity>[] value();
 }

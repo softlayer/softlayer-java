@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiType {
+    /** The API type name as visible at http://sldn.softlayer.com/reference/datatypes/ */
     String value();
 }

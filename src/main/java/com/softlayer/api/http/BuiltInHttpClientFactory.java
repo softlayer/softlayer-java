@@ -14,6 +14,9 @@ import java.util.concurrent.Future;
 
 import javax.xml.bind.DatatypeConverter;
 
+/**
+ * Default implementation of {@link HttpClientFactory} that only supports simple {@link HttpURLConnection}.
+ */
 class BuiltInHttpClientFactory extends HttpClientFactory {
 
     @Override

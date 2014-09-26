@@ -1,5 +1,6 @@
 package com.softlayer.api;
 
+/** Base exception for all errors that occur inside the API */
 @SuppressWarnings("serial")
 public class ApiException extends RuntimeException {
     
