@@ -10,24 +10,75 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.xml.bind.DatatypeConverter;
+
+import com.softlayer.api.ResponseHandler;
 
 /**
  * Default implementation of {@link HttpClientFactory} that only supports simple {@link HttpURLConnection}.
  */
-class BuiltInHttpClientFactory extends HttpClientFactory {
+class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
 
+    // Volatile is not enough here, we have to have more control over setting and what not
+    private ExecutorService threadPool;
+    private boolean threadPoolUserDefined;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    
     @Override
     public HttpClient getHttpClient(HttpCredentials credentials, String method,
             String fullUrl, Map<String, List<String>> headers) {
         return new BuiltInHttpClient(credentials, method, fullUrl, headers);
     }
+    
+    public ExecutorService getThreadPool() {
+        lock.readLock().lock();
+        try {
+            if (threadPool != null) {
+                return threadPool;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+        lock.writeLock().lock();
+        try {
+            if (threadPool == null) {
+                threadPool = Executors.newCachedThreadPool();
+                threadPoolUserDefined = false;
+            }
+            return threadPool;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+    
+    @Override
+    public void setThreadPool(ExecutorService threadPool) {
+        lock.writeLock().lock();
+        try {
+            // Shutdown existing one if a new one is being given
+            if (this.threadPool != null && !threadPoolUserDefined) {
+                this.threadPool.shutdownNow();
+            }
+            this.threadPool = threadPool;
+            threadPoolUserDefined = threadPool != null;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
 
-    static class BuiltInHttpClient implements HttpClient, HttpResponse {
+    class BuiltInHttpClient implements HttpClient, HttpResponse {
 
-        final HttpURLConnection connection;
+        final HttpBasicAuthCredentials credentials;
+        final String method;
+        final String fullUrl;
+        final Map<String, List<String>> headers;
+        HttpURLConnection connection;
         
         public BuiltInHttpClient(HttpCredentials credentials, String method,
                 String fullUrl, Map<String, List<String>> headers) {
@@ -35,6 +86,25 @@ class BuiltInHttpClientFactory extends HttpClientFactory {
             if (credentials != null && !(credentials instanceof HttpBasicAuthCredentials)) {
                 throw new UnsupportedOperationException("Only basic auth is supported, not " + credentials.getClass());
             }
+            this.credentials = (HttpBasicAuthCredentials) credentials;
+            this.method = method;
+            this.fullUrl = fullUrl;
+            this.headers = headers;
+        }
+        
+        @Override
+        public OutputStream getBodyStream() {
+            try {
+                connection.setDoOutput(true);
+                return connection.getOutputStream();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public HttpResponse invokeSync() {
+            // We let HTTP URL connection do it's invocation when it wants
             try {
                 connection = (HttpURLConnection) new URL(fullUrl).openConnection();
             } catch (IOException e) {
@@ -63,32 +133,38 @@ class BuiltInHttpClientFactory extends HttpClientFactory {
                     throw new RuntimeException(e);
                 }
             }
-        }
-        
-        @Override
-        public OutputStream getBodyStream() {
-            try {
-                connection.setDoOutput(true);
-                return connection.getOutputStream();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public HttpResponse invokeSync() {
-            // We let HTTP URL connection do it's invocation when it wants
             return this;
         }
 
         @Override
-        public Future<HttpResponse> invokeAsync() {
-            throw new UnsupportedOperationException("Asynchronous execution not supported");
+        public Future<HttpResponse> invokeAsync(final Callable<?> setupBody) {
+            return getThreadPool().submit(new Callable<HttpResponse>() {
+                @Override
+                public HttpResponse call() throws Exception {
+                    HttpResponse response = invokeSync();
+                    setupBody.call();
+                    return response;
+                }
+            });
         }
 
         @Override
-        public void invokeAsync(Callable<Future<HttpResponse>> callback) {
-            throw new UnsupportedOperationException("Asynchronous execution not supported");
+        public Future<?> invokeAsync(final Callable<?> setupBody, final ResponseHandler<HttpResponse> callback) {
+            return getThreadPool().submit(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    HttpResponse resp;
+                    try {
+                        resp = invokeSync();
+                        setupBody.call();
+                    } catch (Exception e) {
+                        callback.onError(e);
+                        return null;
+                    }
+                    callback.onSuccess(resp);
+                    return null;
+                }
+            });
         }
 
         @Override

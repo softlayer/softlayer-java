@@ -9,10 +9,16 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiService;
@@ -137,7 +143,7 @@ public class RestApiClient implements ApiClient {
             url.append('/').append(id);
         }
         // Some method names are not included, others can have the "get" stripped
-        if (methodName.startsWith("get")) {
+        if (methodName.startsWith("get") && !"getObject".equals(methodName)) {
             url.append('/').append(methodName.substring(3));
         } else if (!"getObject".equals(methodName) && !"deleteObject".equals(methodName) &&
                 !"createObject".equals(methodName) && !"createObjects".equals(methodName) &&
@@ -194,6 +200,176 @@ public class RestApiClient implements ApiClient {
             this.serviceClass = serviceClass;
             this.id = id;
         }
+        
+        public void logRequestAndWriteBody(HttpClient client, String httpMethod, String url, Object[] args) {
+            if (loggingEnabled) {
+                logRequest(httpMethod, url, args);
+            }
+            // If there are parameters write em
+            if (args != null && args.length > 0) {
+                OutputStream outStream = client.getBodyStream();
+                try {
+                    writeParameterHttpBody(args, outStream);
+                } finally {
+                    try { outStream.close(); } catch (Exception e) { }
+                }
+            }
+        }
+        
+        @SuppressWarnings("resource")
+        public Object logAndHandleResponse(HttpResponse response, String url,
+                java.lang.reflect.Type returnType) throws Exception {
+            InputStream stream = response.getInputStream();
+            if (loggingEnabled) {
+                InputStream newStream;
+                Scanner scanner = null;
+                try {
+                    scanner = new Scanner(stream, "UTF-8").useDelimiter("\\A");
+                    String body = scanner.hasNext() ? scanner.next() : "";
+                    logResponse(url, response.getStatusCode(), body);
+                    newStream = new ByteArrayInputStream(body.getBytes("UTF-8"));
+                } finally {
+                    try {
+                        if (scanner != null) {
+                            scanner.close();
+                        }
+                    } catch (Exception e) { }
+                    try {
+                        stream.close();
+                    } catch (Exception e) { }
+                }
+                stream = newStream;
+            }
+            try {
+                // If it's not a 200, we have a problem
+                if (response.getStatusCode() != 200) {
+                    // Extract error and throw
+                    Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
+                            fromJson(Map.class, stream);
+                    throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
+                }
+                // Just return the serialized response
+                return getJsonMarshallerFactory().getJsonMarshaller().fromJson(returnType, stream);
+            } finally {
+                try { stream.close(); } catch (Exception e) { }
+            }
+        }
+        
+        public Object invokeService(Method method, Object[] args) throws Throwable {
+            ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
+            // Must have ID if instance is required
+            if (methodInfo.instanceRequired() && id == null) {
+                throw new IllegalStateException("ID is required to invoke " + method);
+            }
+            String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
+            String httpMethod = getHttpMethodFromMethodName(methodName);
+            Long methodId = methodInfo.instanceRequired() ? this.id : null;
+            String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
+                    methodName, methodId, mask == null ? maskString : mask.getMask());
+            HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
+            
+            logRequestAndWriteBody(client, httpMethod, url, args);
+
+            // Invoke with response
+            HttpResponse response = client.invokeSync();
+            
+            return logAndHandleResponse(response, url, method.getGenericReturnType());
+        }
+        
+        @SuppressWarnings("unchecked")
+        public Object invokeServiceAsync(final Method method, final Object[] args) throws Throwable {
+            // If the last parameter is a callback, it is a different type of invocation
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            boolean lastParamCallback = parameterTypes.length > 0 &&
+                ResponseHandler.class.isAssignableFrom(parameterTypes[parameterTypes.length - 1]);
+            if (lastParamCallback) {
+                parameterTypes = Arrays.copyOfRange(parameterTypes, 0, parameterTypes.length - 1);
+            }
+            ApiMethod methodInfo = serviceClass.getMethod(method.getName(), parameterTypes).
+                getAnnotation(ApiMethod.class);
+            // Must have ID if instance is required
+            if (methodInfo.instanceRequired() && id == null) {
+                throw new IllegalStateException("ID is required to invoke " + method);
+            }
+            String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
+            final String httpMethod = getHttpMethodFromMethodName(methodName);
+            Long methodId = methodInfo.instanceRequired() ? this.id : null;
+            final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
+                    methodName, methodId, mask == null ? maskString : mask.getMask());
+            final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
+            
+            Callable<Void> setupBody = new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    logRequestAndWriteBody(client, httpMethod, url, args);
+                    return null;
+                }
+            };
+            
+            if (lastParamCallback) {
+                final ResponseHandler<Object> handler = (ResponseHandler<Object>) args[args.length - 1];
+                return client.invokeAsync(setupBody, new ResponseHandler<HttpResponse>() {
+                    @Override
+                    public void onSuccess(HttpResponse value) {
+                        Object result;
+                        try {
+                            result = logAndHandleResponse(value, url, method.getGenericReturnType());
+                        } catch (Exception e) {
+                            onError(e);
+                            return;
+                        }
+                        if (handler != null) {
+                            handler.onSuccess(result);
+                        }
+                    }
+                    
+                    @Override
+                    public void onError(Exception ex) {
+                        if (handler != null) {
+                            handler.onError(ex);
+                        }
+                    }
+                });
+            } else {
+                final Future<HttpResponse> future = client.invokeAsync(setupBody);
+                return new Future<Object>() {
+
+                    @Override
+                    public boolean cancel(boolean mayInterruptIfRunning) {
+                        return future.cancel(mayInterruptIfRunning);
+                    }
+
+                    @Override
+                    public Object get() throws InterruptedException, ExecutionException {
+                        try {
+                            return logAndHandleResponse(future.get(), url, method.getGenericReturnType());
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public Object get(long timeout, TimeUnit unit)
+                            throws InterruptedException, ExecutionException, TimeoutException {
+                        try {
+                            return logAndHandleResponse(future.get(timeout, unit), url, method.getGenericReturnType());
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        return future.isCancelled();
+                    }
+
+                    @Override
+                    public boolean isDone() {
+                        return future.isDone();
+                    }
+                };
+            }
+        }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -225,70 +401,9 @@ public class RestApiClient implements ApiClient {
                 maskString = null;
                 return null;
             } else if (Service.class.isAssignableFrom(method.getDeclaringClass())) {
-                ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
-                // Must have ID if instance is required
-                if (methodInfo.instanceRequired() && id == null) {
-                    throw new IllegalStateException("ID is required to invoke " + method);
-                }
-                String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
-                String httpMethod = getHttpMethodFromMethodName(methodName);
-                Long methodId = methodInfo.instanceRequired() ? this.id : null;
-                String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
-                        methodName, methodId, mask == null ? maskString : mask.getMask());
-                HttpClient client = getHttpClientFactory().getHttpClient(credentials,
-                        httpMethod, url, HEADERS);
-                // Log if enabled
-                if (loggingEnabled) {
-                    logRequest(httpMethod, url, args);
-                }
-                // If there are parameters write em
-                if (args != null && args.length > 0) {
-                    OutputStream outStream = client.getBodyStream();
-                    try {
-                        writeParameterHttpBody(args, outStream);
-                    } finally {
-                        try { outStream.close(); } catch (Exception e) { }
-                    }
-                }
-                // Invoke with response
-                HttpResponse response = client.invokeSync();
-                // Log...
-                InputStream stream = response.getInputStream();
-                if (loggingEnabled) {
-                    InputStream newStream;
-                    Scanner scanner = null;
-                    try {
-                        scanner = new Scanner(stream, "UTF-8").useDelimiter("\\A");
-                        String body = scanner.hasNext() ? scanner.next() : "";
-                        logResponse(url, response.getStatusCode(), body);
-                        newStream = new ByteArrayInputStream(body.getBytes("UTF-8"));
-                    } finally {
-                        try {
-                            if (scanner != null) {
-                                scanner.close();
-                            }
-                        } catch (Exception e) { }
-                        try {
-                            stream.close();
-                        } catch (Exception e) { }
-                    }
-                    stream = newStream;
-                }
-                try {
-                    // If it's not a 200, we have a problem
-                    if (response.getStatusCode() != 200) {
-                        // Extract error and throw
-                        Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
-                                fromJson(Map.class, stream);
-                        throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
-                    }
-                    // Just return the serialized response
-                    return getJsonMarshallerFactory().getJsonMarshaller().fromJson(method.getReturnType(), stream);
-                } finally {
-                    try { stream.close(); } catch (Exception e) { }
-                }
+                return invokeService(method, args);
             } else if (ServiceAsync.class.isAssignableFrom(method.getDeclaringClass())) {
-                throw new UnsupportedOperationException();
+                return invokeServiceAsync(method, args);
             } else {
                 // Should not be possible
                 throw new RuntimeException("Unrecognized method: " + method);

@@ -41,7 +41,7 @@ public class Main {
                 return;
             }
             String dirString = getArg("--src", argList);
-            dir = new File(dirString != null ? dirString : "src/main/java");
+            dir = new File(dirString != null ? dirString : "../src/main/java");
             String urlString = getArg("--url", argList);
             url = new URL(urlString != null ? urlString : "http://api.softlayer.com/metadata");
             whitelist = getRestriction(getArg("--whitelist", argList));
@@ -53,6 +53,7 @@ public class Main {
             System.out.println(USAGE);
             throw e;
         }
+        
         new Generator(dir, url, whitelist, blacklist).buildClient();
     }
     

@@ -7,7 +7,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +38,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             disableHtmlEscaping().
             disableInnerClassSerialization().
             registerTypeAdapterFactory(new EntityTypeAdapterFactory()).
+            registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
             serializeNulls().
             create();
         
@@ -156,6 +161,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             // We are allowed to assume that the first property is apiType always. This allows us to maintain
             //  a streaming reader
             if (in.peek() == JsonToken.NULL) {
+                in.nextNull();
                 return null;
             }
             in.beginObject();
@@ -211,5 +217,51 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             }
             return entity;
         }
+    }
+    
+    static class GregorianCalendarTypeAdapter extends TypeAdapter<GregorianCalendar> {
+        
+        // Although this is ISO-8601, Java 6 does not allow a colon in the timestamp. All API
+        //  dates look like this: 1984-02-25T20:15:25-06:00. Since we can guarantee that, we
+        //  can just remove/add the colon as necessary. This is a better solution than using
+        //  JAXB libraries.
+        // Ref: http://stackoverflow.com/questions/2201925/converting-iso-8601-compliant-string-to-java-util-date
+        
+        final ThreadLocal<DateFormat> format = new ThreadLocal<DateFormat>() {
+            @Override
+            protected DateFormat initialValue() {
+                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            }
+        };
+
+        @Override
+        public void write(JsonWriter out, GregorianCalendar value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+            } else {
+                String date = format.get().format(value.getTime());
+                // Add the colon
+                out.value(date.substring(0, date.length() - 2) + ':' + date.substring(date.length() - 2));
+            }
+        }
+
+        @Override
+        public GregorianCalendar read(JsonReader in) throws IOException {
+            if (in.peek() == JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            }
+            String date = in.nextString();
+            // Remove the colon
+            date = date.substring(0, date.length() - 3) + date.substring(date.length() - 2);
+            GregorianCalendar calendar = new GregorianCalendar();
+            try {
+                calendar.setTime(format.get().parse(date));
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+            return calendar;
+        }
+        
     }
 }

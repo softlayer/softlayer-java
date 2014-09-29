@@ -28,6 +28,7 @@ public class ClassWriter extends JavaWriter {
     public static final String TYPE_ENTITY = "com.softlayer.api.service.Entity";
     public static final String TYPE_FUTURE = "java.util.concurrent.Future";
     public static final String TYPE_MASK = "com.softlayer.api.Mask";
+    public static final String TYPE_RESPONSE_HANDLER = "com.softlayer.api.ResponseHandler";
     public static final String TYPE_SERVICE = "com.softlayer.api.Service";
     public static final String TYPE_SERVICE_ASYNC = "com.softlayer.api.ServiceAsync";
     public static final String TYPE_TYPE = "com.softlayer.api.Type";
@@ -284,9 +285,9 @@ public class ClassWriter extends JavaWriter {
         // Async has an extra callback method
         if (async) {
             parameters = Arrays.copyOf(parameters, parameters.length + 2);
-            parameters[parameters.length - 2] = TYPE_CALLABLE + '<' + returnType + '>';
+            parameters[parameters.length - 2] = TYPE_RESPONSE_HANDLER + '<' + method.javaType + '>';
             parameters[parameters.length - 1] = "callback";
-            beginMethod("void", method.name, PUBLIC, parameters).endMethod().emitEmptyLine();
+            beginMethod(TYPE_FUTURE + "<?>", method.name, PUBLIC, parameters).endMethod().emitEmptyLine();
         }
         
         return this;
@@ -327,8 +328,8 @@ public class ClassWriter extends JavaWriter {
         // Async has an extra callback method
         if (async) {
             emitJavadoc("Async callback version of {@link Service#" + name + "}");
-            beginMethod("void", name, PUBLIC, TYPE_CALLABLE + '<' + returnType + '>', "callback").
-                endMethod().emitEmptyLine();
+            beginMethod(TYPE_FUTURE + "<?>", name, PUBLIC, TYPE_RESPONSE_HANDLER + '<' + property.javaType + '>',
+                "callback").endMethod().emitEmptyLine();
         }
         return this;
     }
@@ -398,7 +399,7 @@ public class ClassWriter extends JavaWriter {
         if (!type.methods.isEmpty()) {
             imports.put("ApiMethod", TYPE_API_METHOD);
             imports.put("Future", TYPE_FUTURE);
-            imports.put("Callable", TYPE_CALLABLE);
+            imports.put("ResponseHandler", TYPE_RESPONSE_HANDLER);
         }
         
         // Remove Service if we have one

@@ -5,6 +5,8 @@ import java.io.OutputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import com.softlayer.api.ResponseHandler;
+
 /**
  * This class is not thread-safe even when using invoke async. This class should only live for the
  * duration of one HTTP request.
@@ -18,8 +20,8 @@ public interface HttpClient extends Closeable {
     public HttpResponse invokeSync();
     
     /** Make asynchronous HTTP invocation. All errors (inability to connect or API errors) are in the future. */
-    public Future<HttpResponse> invokeAsync();
+    public Future<HttpResponse> invokeAsync(Callable<?> setupBody);
     
     /** Callback-form of {@link #invokeAsync()} */
-    public void invokeAsync(Callable<Future<HttpResponse>> callback);
+    public Future<?> invokeAsync(Callable<?> setupBody, ResponseHandler<HttpResponse> callback);
 }
