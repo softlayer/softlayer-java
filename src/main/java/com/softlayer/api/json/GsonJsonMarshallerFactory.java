@@ -22,7 +22,7 @@ import com.google.gson.stream.JsonWriter;
 import com.softlayer.api.annotation.ApiProperty;
 import com.softlayer.api.annotation.ApiType;
 import com.softlayer.api.annotation.ApiTypes;
-import com.softlayer.api.temp.Entity;
+import com.softlayer.api.service.Entity;
 
 class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMarshaller {
 

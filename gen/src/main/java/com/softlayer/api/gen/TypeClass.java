@@ -11,11 +11,14 @@ public class TypeClass {
     public final String className;
     public final String baseJavaType;
     public final Meta.Type baseMeta;
+    public final String baseServiceJavaType;
+    public final Meta.Type baseServiceMeta;
     public final List<Property> properties;
     public final List<Method> methods;
     
     public TypeClass(Meta.Type meta, Map<String, String> imports, String packageName, String className,
-            String baseJavaType, Meta.Type baseMeta, List<Property> properties, List<Method> methods) {
+            String baseJavaType, Meta.Type baseMeta, String baseServiceJavaType, Meta.Type baseServiceMeta,
+            List<Property> properties, List<Method> methods) {
         this.meta = meta;
         this.imports = imports;
         this.packageName = packageName;
@@ -24,6 +27,8 @@ public class TypeClass {
         this.baseMeta = baseMeta;
         this.properties = properties;
         this.methods = methods;
+        this.baseServiceJavaType = baseServiceJavaType;
+        this.baseServiceMeta = baseServiceMeta;
     }
     
     public String getFullClassName() {
@@ -50,8 +55,7 @@ public class TypeClass {
         public final String javaType;
         public final List<Parameter> parameters;
         
-        public Method(Meta.Method meta, String name, String javaType,
-                List<Parameter> parameters) {
+        public Method(Meta.Method meta, String name, String javaType, List<Parameter> parameters) {
             this.meta = meta;
             this.name = name;
             this.javaType = javaType;

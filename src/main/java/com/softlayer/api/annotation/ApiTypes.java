@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.softlayer.api.temp.Entity;
+import com.softlayer.api.service.Entity;
 
 @Documented
 @Target(ElementType.PACKAGE)

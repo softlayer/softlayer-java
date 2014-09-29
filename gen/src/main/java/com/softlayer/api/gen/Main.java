@@ -53,7 +53,6 @@ public class Main {
             System.out.println(USAGE);
             throw e;
         }
-        
         new Generator(dir, url, whitelist, blacklist).buildClient();
     }
     

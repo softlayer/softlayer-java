@@ -5,24 +5,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.lang.model.element.Modifier;
 
-import com.softlayer.api.ApiClient;
-import com.softlayer.api.annotation.ApiMethod;
-import com.softlayer.api.temp.Account;
-import com.softlayer.api.temp.Hardware;
-import com.softlayer.api.temp.Account.Mask;
-import com.softlayer.api.temp.Account.Service;
-import com.softlayer.api.temp.Account.ServiceAsync;
 import com.squareup.javawriter.JavaWriter;
 
 public class ClassWriter extends JavaWriter {
@@ -39,16 +30,11 @@ public class ClassWriter extends JavaWriter {
     public static final String TYPE_MASK = "com.softlayer.api.Mask";
     public static final String TYPE_SERVICE = "com.softlayer.api.Service";
     public static final String TYPE_SERVICE_ASYNC = "com.softlayer.api.ServiceAsync";
+    public static final String TYPE_TYPE = "com.softlayer.api.Type";
 
-    private static final Set<Modifier> NONE = EnumSet.noneOf(Modifier.class);
-    private static final Set<Modifier> PRIVATE_FINAL = EnumSet.of(Modifier.PRIVATE, Modifier.FINAL);
-    private static final Set<Modifier> PRIVATE_STATIC = EnumSet.of(Modifier.PRIVATE, Modifier.STATIC);
     private static final Set<Modifier> PROTECTED = EnumSet.of(Modifier.PROTECTED);
-    private static final Set<Modifier> PROTECTED_STATIC = EnumSet.of(Modifier.PROTECTED, Modifier.STATIC);
     private static final Set<Modifier> PUBLIC = EnumSet.of(Modifier.PUBLIC);
-    private static final Set<Modifier> PUBLIC_ABSTRACT = EnumSet.of(Modifier.PUBLIC, Modifier.ABSTRACT);
     private static final Set<Modifier> PUBLIC_STATIC = EnumSet.of(Modifier.PUBLIC, Modifier.STATIC);
-    private static final Set<Modifier> STATIC = EnumSet.of(Modifier.STATIC);
     
     public static void emitPackageInfo(File baseDir, List<TypeClass> classes) throws IOException {
         // Do this manually, the Java writer doesn't help us here
@@ -138,6 +124,10 @@ public class ClassWriter extends JavaWriter {
     }
     
     public ClassWriter emitProperty(TypeClass.Property property) throws IOException {
+        if (property.meta.doc != null) {
+            emitJavadoc(property.meta.doc.replace("\n", "<br />\n"));
+        }
+        
         Map<String, Object> params = new HashMap<String, Object>(2);
         if (!property.name.equals(property.meta.name)) {
             params.put("value", stringLiteral(property.meta.name));
@@ -187,13 +177,26 @@ public class ClassWriter extends JavaWriter {
         return this;
     }
     
+    public ClassWriter emitJavadoc(String javadoc, Object... params) throws IOException {
+        //Since the base class formats, we have to double-up our percent signs
+        return (ClassWriter) super.emitJavadoc(javadoc.replace("%", "%%"), params);
+    }
     
     public ClassWriter emitService() throws IOException {
+        String javadoc = type.meta.serviceDoc;
+        if (javadoc == null) {
+            javadoc = "";
+        } else {
+            javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
+        }
+        javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/service/" +
+                type.meta.name + "\">" + type.meta.name + "</a>";
+        emitJavadoc(javadoc);
         
         emitAnnotation(TYPE_API_SERVICE, stringLiteral(type.meta.name));
         String base;
-        if (type.baseJavaType != null && !type.baseMeta.noservice) {
-            base = type.baseJavaType + ".Service";
+        if (type.baseServiceJavaType != null) {
+            base = compressType(type.baseServiceJavaType) + ".Service";
         } else {
             base = TYPE_SERVICE;
         }
@@ -215,8 +218,8 @@ public class ClassWriter extends JavaWriter {
         endType().emitEmptyLine();
         
         // And the async one...
-        if (type.baseJavaType != null && !type.baseMeta.noservice) {
-            base = type.baseJavaType + ".ServiceAsync";
+        if (type.baseServiceJavaType != null) {
+            base = compressType(type.baseServiceJavaType) + ".ServiceAsync";
         } else {
             base = TYPE_SERVICE_ASYNC;
         }
@@ -241,6 +244,17 @@ public class ClassWriter extends JavaWriter {
     
     public ClassWriter emitServiceMethod(TypeClass.Method method, boolean async) throws IOException {
         if (!async) {
+            // Only non-async get service docs and annotation
+            String javadoc = method.meta.doc;
+            if (javadoc == null) {
+                javadoc = "";
+            } else {
+                javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
+            }
+            javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/services/" + type.meta.name +
+                "/" + method.meta.name + "\">" + type.meta.name + "::" + method.meta.name + "</a>";
+            emitJavadoc(javadoc);
+            
             Map<String, Object> params = new HashMap<String, Object>(2);
             if (!method.name.equals(method.meta.name)) {
                 params.put("value", stringLiteral(method.meta.name));
@@ -249,6 +263,9 @@ public class ClassWriter extends JavaWriter {
                 params.put("instanceRequired", true);
             }
             emitAnnotation(TYPE_API_METHOD, params);
+        } else {
+            // Otherwise, just a javadoc link
+            emitJavadoc("Async version of {@link Service#" + method.name + "}");
         }
         
         String[] parameters = new String[method.parameters.size() * 2];
@@ -284,7 +301,21 @@ public class ClassWriter extends JavaWriter {
         }
         
         if (!async) {
+            // Only non-async get service docs and annotation
+            String javadoc = property.meta.doc;
+            if (javadoc == null) {
+                javadoc = "";
+            } else {
+                javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
+            }
+            javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/services/" + type.meta.name +
+                "/" + name + "\">" + type.meta.name + "::" + name + "</a>";
+            emitJavadoc(javadoc);
+            
             emitAnnotationWithAttrs(TYPE_API_METHOD, "instanceRequired", true);
+        } else {
+            // Otherwise, just a javadoc link
+            emitJavadoc("Async version of {@link Service#" + name + "}");
         }
         
         String returnType = property.javaType;
@@ -295,6 +326,7 @@ public class ClassWriter extends JavaWriter {
         
         // Async has an extra callback method
         if (async) {
+            emitJavadoc("Async callback version of {@link Service#" + name + "}");
             beginMethod("void", name, PUBLIC, TYPE_CALLABLE + '<' + returnType + '>', "callback").
                 endMethod().emitEmptyLine();
         }
@@ -320,7 +352,8 @@ public class ClassWriter extends JavaWriter {
         // Each type has a type attribute
         emitAnnotation("ApiType", stringLiteral(type.meta.name));
         
-        beginType(type.className, "class", PUBLIC, type.baseJavaType).emitEmptyLine();
+        String baseType = type.baseJavaType == null ? TYPE_TYPE : type.baseJavaType;
+        beginType(type.className, "class", PUBLIC, baseType).emitEmptyLine();
         
         // Write all the API properties
         for (TypeClass.Property property : type.properties) {
@@ -343,11 +376,11 @@ public class ClassWriter extends JavaWriter {
                     emitStatement("return client.createService(Service.class, id)").
                     endMethod().emitEmptyLine();
             }
+            
+            emitService();
         }
         
-        emitMask().emitService();
-        
-        endType();
+        emitMask().endType();
         return this;
     }
     
@@ -373,11 +406,6 @@ public class ClassWriter extends JavaWriter {
             imports.remove("Service");
             imports.remove("ServiceAsync");
             imports.put("ApiClient", TYPE_API_CLIENT);
-        }
-        
-        // Add ArrayList if we have list
-        if (imports.containsKey("List")) {
-            imports.put("ArrayList", "java.util.ArrayList");
         }
         
         emitImports(imports.values()).emitEmptyLine();

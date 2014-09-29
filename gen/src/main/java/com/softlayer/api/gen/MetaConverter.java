@@ -88,11 +88,25 @@ public class MetaConverter {
         String className = getClassName(type.name);
         String base = null;
         Meta.Type baseMeta = null;
+        String baseService = null;
+        Meta.Type baseServiceMeta = null;
         if (type.base != null && !"SoftLayer_Entity".equals(type.name)) {
             String baseClassName = getClassName(type.base);
             base = getPackageName(type.base) + '.' + baseClassName;
             imports.put(baseClassName, base);
             baseMeta = meta.types.get(type.base);
+            // Sometimes, the direct parent is not a service, but the grandparent is
+            baseServiceMeta = baseMeta;
+            if (!type.noservice) {
+                while (baseServiceMeta != null && baseServiceMeta.noservice) {
+                    baseServiceMeta = baseServiceMeta.base == null ? null : meta.types.get(baseServiceMeta.base);
+                }
+            }
+            if (baseServiceMeta != null) {
+                String baseServiceClassName = getClassName(baseServiceMeta.name);
+                baseService = getPackageName(baseServiceMeta.name) + '.' + baseServiceClassName;
+                imports.put(baseServiceClassName, baseService);
+            }
         }
         
         List<TypeClass.Property> properties = new ArrayList<TypeClass.Property>(type.properties.size());
@@ -101,6 +115,10 @@ public class MetaConverter {
             if (javaType != null) {
                 properties.add(new TypeClass.Property(property, getMethodOrPropertyName(className, property.name),
                     javaType, getJavaType(property.type, false)));
+                // If we are a list, we know we need the concrete impl that is used during lazily instantiation
+                if (property.typeArray) {
+                    imports.put("ArrayList", "java.util.ArrayList");
+                }
             }
         }
         
@@ -119,16 +137,56 @@ public class MetaConverter {
                     parameters.add(new TypeClass.Parameter(parameter, paramJavaType));
                 }
                 if (allParametersValid) {
-                    methods.add(new TypeClass.Method(method, getMethodOrPropertyName(className, method.name),
-                        javaType, parameters));
+                    String name = method.name;
+                    // There are some cases where one of the parent classes contains the same method with
+                    //  the same parameters but with different return type. This is usually fine with our regular
+                    //  interface that has regular return types which are covariant. However in the async interface
+                    //  the return types are generics of future/callable which are invariant. This check makes sure
+                    //  that we change the name when this happens.
+                    Meta.Type parent = baseMeta;
+                    while (parent != null && name.equals(method.name)) {
+                        Meta.Method parentMethod = parent.methods.get(method.name);
+                        if (parentMethod != null && parentMethod.parameters.size() == method.parameters.size()) {
+                            // Check all parameter types. Note, parameter types are equal if they are just arrays. This
+                            //  is because we use List whose type parameter is invariant too.
+                            boolean parametersEqual = true;
+                            for (int i = 0; i < method.parameters.size(); i++) {
+                                Meta.Parameter methodParameter = method.parameters.get(i);
+                                Meta.Parameter parentParameter = parentMethod.parameters.get(i);
+                                parametersEqual = (methodParameter.typeArray == parentParameter.typeArray &&
+                                    methodParameter.type.equals(parentMethod.type)) ||
+                                    (methodParameter.typeArray && parentParameter.typeArray);
+                                if (!parametersEqual) {
+                                    break;
+                                }
+//                                if ((methodParameter.typeArray && parentParameter.typeArray &&
+//                                        !methodParameter.type.equals(parentMethod.type)) ||
+//                                        !methodParameter.type.equals(parentMethod.type) ||  
+//                                        methodParameter.typeArray != parentParameter.typeArray) {
+//                                    parametersEqual = false;
+//                                    break;
+//                                }
+                            }
+                            if (parametersEqual) {
+                                // Now we know we have invariance; we have to change the Java method name. We just
+                                //  append "for" + the class name. Wed don't do this check recursively, because it
+                                //  is rare to resolve this ambiguity and the need hasn't arisen.
+                                name += "For" + className;
+                            }
+                        }
+                        parent = parent.base == null ? null : meta.types.get(parent.base);
+                    }
+                    methods.add(new TypeClass.Method(method,
+                        getMethodOrPropertyName(className, name), javaType, parameters));
                 }
             }
         }
         
-        return new TypeClass(type, imports, packageName, className, base, baseMeta, properties, methods);
+        return new TypeClass(type, imports, packageName, className, base, baseMeta,
+            baseService, baseServiceMeta, properties, methods);
     }
-    
     public String getJavaType(String typeName, boolean array) {
+    
         String javaType;
         // Attempt primitives first
         if ("base64Binary".equals(typeName)) {

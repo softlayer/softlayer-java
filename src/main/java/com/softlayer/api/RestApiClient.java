@@ -21,7 +21,7 @@ import com.softlayer.api.http.HttpClient;
 import com.softlayer.api.http.HttpClientFactory;
 import com.softlayer.api.http.HttpResponse;
 import com.softlayer.api.json.JsonMarshallerFactory;
-import com.softlayer.api.temp.Entity;
+import com.softlayer.api.service.Entity;
 
 /** Implementation of API client for http://sldn.softlayer.com/article/REST */
 public class RestApiClient implements ApiClient {

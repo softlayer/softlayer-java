@@ -39,6 +39,7 @@ public class Generator {
             classes.add(typeClass);
         }
         ClassWriter.emitPackageInfo(dir, classes);
+        log("Done");
     }
     
     public void applyRestrictions(Meta meta) {
