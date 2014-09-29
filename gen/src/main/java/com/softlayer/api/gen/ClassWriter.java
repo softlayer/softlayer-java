@@ -161,18 +161,18 @@ public class ClassWriter extends JavaWriter {
             }
             emitStatement("this." + property.name + " = " + property.name).
                 endMethod().emitEmptyLine();
-            
-            // Make the XSpecified boolean property if needed
-            if (property.meta.form == Meta.PropertyForm.LOCAL) {
-                emitField("boolean", property.name + "Specified", PROTECTED);
-                beginMethod("boolean", "is" + capitalized + "Specified", PUBLIC).
-                    emitStatement("return " + property.name + "Specified").
-                    endMethod().emitEmptyLine();
-                beginMethod("void", "unset" + capitalized, PUBLIC).
-                    emitStatement(property.name + " = null").
-                    emitStatement(property.name + "Specified = false").
-                    endMethod().emitEmptyLine();
-            }
+        }
+        
+        // Make the XSpecified boolean property if needed
+        if (property.meta.form == Meta.PropertyForm.LOCAL) {
+            emitField("boolean", property.name + "Specified", PROTECTED).emitEmptyLine();
+            beginMethod("boolean", "is" + capitalized + "Specified", PUBLIC).
+                emitStatement("return " + property.name + "Specified").
+                endMethod().emitEmptyLine();
+            beginMethod("void", "unset" + capitalized, PUBLIC).
+                emitStatement(property.name + " = null").
+                emitStatement(property.name + "Specified = false").
+                endMethod().emitEmptyLine();
         }
         
         return this;
@@ -260,7 +260,7 @@ public class ClassWriter extends JavaWriter {
             if (!method.name.equals(method.meta.name)) {
                 params.put("value", stringLiteral(method.meta.name));
             }
-            if (method.meta.isstatic) {
+            if (!method.meta.isstatic) {
                 params.put("instanceRequired", true);
             }
             emitAnnotation(TYPE_API_METHOD, params);

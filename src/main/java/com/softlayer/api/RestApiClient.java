@@ -242,7 +242,7 @@ public class RestApiClient implements ApiClient {
             }
             try {
                 // If it's not a 200, we have a problem
-                if (response.getStatusCode() != 200) {
+                if (response.getStatusCode() < 200 || response.getStatusCode() > 300) {
                     // Extract error and throw
                     Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
                             fromJson(Map.class, stream);
@@ -255,38 +255,47 @@ public class RestApiClient implements ApiClient {
             }
         }
         
-        public Object invokeService(Method method, Object[] args) throws Throwable {
+        public Object invokeService(Method method, final Object[] args) throws Throwable {
             ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
             // Must have ID if instance is required
             if (methodInfo.instanceRequired() && id == null) {
                 throw new IllegalStateException("ID is required to invoke " + method);
             }
             String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
-            String httpMethod = getHttpMethodFromMethodName(methodName);
+            final String httpMethod = getHttpMethodFromMethodName(methodName);
             Long methodId = methodInfo.instanceRequired() ? this.id : null;
-            String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
+            final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
                     methodName, methodId, mask == null ? maskString : mask.getMask());
-            HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
-            
-            logRequestAndWriteBody(client, httpMethod, url, args);
+            final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
 
             // Invoke with response
-            HttpResponse response = client.invokeSync();
+            HttpResponse response = client.invokeSync(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    logRequestAndWriteBody(client, httpMethod, url, args);
+                    return null;
+                }
+            });
             
             return logAndHandleResponse(response, url, method.getGenericReturnType());
         }
         
         @SuppressWarnings("unchecked")
-        public Object invokeServiceAsync(final Method method, final Object[] args) throws Throwable {
+        public Object invokeServiceAsync(final Method asyncMethod, final Object[] args) throws Throwable {
             // If the last parameter is a callback, it is a different type of invocation
-            Class<?>[] parameterTypes = method.getParameterTypes();
+            Class<?>[] parameterTypes = asyncMethod.getParameterTypes();
             boolean lastParamCallback = parameterTypes.length > 0 &&
                 ResponseHandler.class.isAssignableFrom(parameterTypes[parameterTypes.length - 1]);
+            final Object[] trimmedArgs;
             if (lastParamCallback) {
                 parameterTypes = Arrays.copyOfRange(parameterTypes, 0, parameterTypes.length - 1);
+                trimmedArgs = Arrays.copyOfRange(args, 0, args.length - 1);
+            } else {
+                trimmedArgs = args;
             }
-            ApiMethod methodInfo = serviceClass.getMethod(method.getName(), parameterTypes).
-                getAnnotation(ApiMethod.class);
+            
+            final Method method = serviceClass.getMethod(asyncMethod.getName(), parameterTypes);
+            ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
             // Must have ID if instance is required
             if (methodInfo.instanceRequired() && id == null) {
                 throw new IllegalStateException("ID is required to invoke " + method);
@@ -301,7 +310,7 @@ public class RestApiClient implements ApiClient {
             Callable<Void> setupBody = new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    logRequestAndWriteBody(client, httpMethod, url, args);
+                    logRequestAndWriteBody(client, httpMethod, url, trimmedArgs);
                     return null;
                 }
             };

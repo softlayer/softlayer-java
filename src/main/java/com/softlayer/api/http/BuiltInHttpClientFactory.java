@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -48,7 +49,16 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
         lock.writeLock().lock();
         try {
             if (threadPool == null) {
-                threadPool = Executors.newCachedThreadPool();
+                threadPool = Executors.newCachedThreadPool(new ThreadFactory() {
+                    final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
+                    
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        Thread thread = defaultFactory.newThread(r);
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
                 threadPoolUserDefined = false;
             }
             return threadPool;
@@ -103,7 +113,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
         }
 
         @Override
-        public HttpResponse invokeSync() {
+        public HttpResponse invokeSync(Callable<?> setupBody) {
             // We let HTTP URL connection do it's invocation when it wants
             try {
                 connection = (HttpURLConnection) new URL(fullUrl).openConnection();
@@ -133,6 +143,11 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
                     throw new RuntimeException(e);
                 }
             }
+            try {
+                setupBody.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             return this;
         }
 
@@ -141,8 +156,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
             return getThreadPool().submit(new Callable<HttpResponse>() {
                 @Override
                 public HttpResponse call() throws Exception {
-                    HttpResponse response = invokeSync();
-                    setupBody.call();
+                    HttpResponse response = invokeSync(setupBody);
                     return response;
                 }
             });
@@ -155,8 +169,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
                 public Void call() throws Exception {
                     HttpResponse resp;
                     try {
-                        resp = invokeSync();
-                        setupBody.call();
+                        resp = invokeSync(setupBody);
                     } catch (Exception e) {
                         callback.onError(e);
                         return null;
@@ -189,7 +202,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
         @Override
         public InputStream getInputStream() {
             try {
-                if (connection.getResponseCode() == 200) {
+                if (connection.getResponseCode() >= 200 && connection.getResponseCode() < 300) {
                     return connection.getInputStream();
                 } else {
                     return connection.getErrorStream();

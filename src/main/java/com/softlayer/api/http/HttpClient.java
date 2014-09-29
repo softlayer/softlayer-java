@@ -17,7 +17,7 @@ public interface HttpClient extends Closeable {
     public OutputStream getBodyStream();
     
     /** Make synchronous HTTP invocation. Throws if unable to connect. Errors from the API are returned normally. */
-    public HttpResponse invokeSync();
+    public HttpResponse invokeSync(Callable<?> setupBody);
     
     /** Make asynchronous HTTP invocation. All errors (inability to connect or API errors) are in the future. */
     public Future<HttpResponse> invokeAsync(Callable<?> setupBody);

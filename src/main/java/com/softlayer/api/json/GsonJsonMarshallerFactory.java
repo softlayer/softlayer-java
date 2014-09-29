@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.text.DateFormat;
@@ -58,7 +59,13 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
 
     @Override
     public void toJson(Object object, OutputStream out) {
-        gson.toJson(object, object.getClass(), new OutputStreamWriter(out));
+        Writer writer = new OutputStreamWriter(out);
+        gson.toJson(object, object.getClass(), writer);
+        try {
+            writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
