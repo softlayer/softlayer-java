@@ -136,7 +136,8 @@ public class RestApiClient implements ApiClient {
         }
     }
     
-    protected String getFullUrl(String serviceName, String methodName, Long id, String maskString) {
+    protected String getFullUrl(String serviceName, String methodName, Long id,
+            ResultLimit resultLimit, String maskString) {
         StringBuilder url = new StringBuilder(baseUrl + serviceName);
         // ID present? add it
         if (id != null) {
@@ -151,9 +152,13 @@ public class RestApiClient implements ApiClient {
             url.append('/').append(methodName);
         }
         url.append(".json");
+        if (resultLimit != null) {
+            url.append("?resultLimit=").append(resultLimit.offset).append(',').append(resultLimit.limit);
+        }
         if (maskString != null && !maskString.isEmpty()) {
+            url.append(resultLimit == null ? '?' : '&');
             try {
-                url.append("?objectMask=").append(URLEncoder.encode(maskString, "UTF-8"));
+                url.append("objectMask=").append(URLEncoder.encode(maskString, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
@@ -195,6 +200,8 @@ public class RestApiClient implements ApiClient {
         final Long id;
         Mask mask;
         String maskString;
+        ResultLimit resultLimit;
+        Integer lastResponseTotalItemCount;
         
         public ServiceProxy(Class<S> serviceClass, Long id) {
             this.serviceClass = serviceClass;
@@ -220,7 +227,7 @@ public class RestApiClient implements ApiClient {
         public Object logAndHandleResponse(HttpResponse response, String url,
                 java.lang.reflect.Type returnType) throws Exception {
             InputStream stream = response.getInputStream();
-            if (loggingEnabled) {
+            if (loggingEnabled && stream != null) {
                 InputStream newStream;
                 Scanner scanner = null;
                 try {
@@ -243,10 +250,22 @@ public class RestApiClient implements ApiClient {
             try {
                 // If it's not a 200, we have a problem
                 if (response.getStatusCode() < 200 || response.getStatusCode() > 300) {
+                    if (stream == null) {
+                        throw new ApiException("Unknown error", null, response.getStatusCode());
+                    }
                     // Extract error and throw
                     Map<String, String> map = getJsonMarshallerFactory().getJsonMarshaller().
                             fromJson(Map.class, stream);
                     throw ApiException.fromError(map.get("error"), map.get("code"), response.getStatusCode());
+                }
+                // Update total items
+                lastResponseTotalItemCount = null;
+                Map<String, List<String>> headers = response.getHeaders();
+                if (headers != null) {
+                    List<String> totalItems = headers.get("X-SoftLayer-Total-Items");
+                    if (!totalItems.isEmpty()) {
+                        lastResponseTotalItemCount = Integer.valueOf(totalItems.get(0));
+                    }
                 }
                 // Just return the serialized response
                 return getJsonMarshallerFactory().getJsonMarshaller().fromJson(returnType, stream);
@@ -265,7 +284,7 @@ public class RestApiClient implements ApiClient {
             final String httpMethod = getHttpMethodFromMethodName(methodName);
             Long methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
-                    methodName, methodId, mask == null ? maskString : mask.getMask());
+                    methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
 
             // Invoke with response
@@ -304,7 +323,7 @@ public class RestApiClient implements ApiClient {
             final String httpMethod = getHttpMethodFromMethodName(methodName);
             Long methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
-                    methodName, methodId, mask == null ? maskString : mask.getMask());
+                    methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
             
             Callable<Void> setupBody = new Callable<Void>() {
@@ -328,6 +347,10 @@ public class RestApiClient implements ApiClient {
                             return;
                         }
                         if (handler != null) {
+                            if (handler instanceof ResponseHandlerWithHeaders) {
+                                ((ResponseHandlerWithHeaders<?>) handler).setLastResponseTotalItemCount(
+                                    lastResponseTotalItemCount);
+                            }
                             handler.onSuccess(result);
                         }
                     }
@@ -342,6 +365,8 @@ public class RestApiClient implements ApiClient {
             } else {
                 final Future<HttpResponse> future = client.invokeAsync(setupBody);
                 return new Future<Object>() {
+                    private boolean responseAttempted;
+                    private Object response;
 
                     @Override
                     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -349,22 +374,31 @@ public class RestApiClient implements ApiClient {
                     }
 
                     @Override
-                    public Object get() throws InterruptedException, ExecutionException {
-                        try {
-                            return logAndHandleResponse(future.get(), url, method.getGenericReturnType());
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+                    public synchronized Object get() throws InterruptedException, ExecutionException {
+                        if (!responseAttempted) {
+                            responseAttempted = true;
+                            try {
+                                response = logAndHandleResponse(future.get(), url, method.getGenericReturnType());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
                         }
+                        return response;
                     }
 
                     @Override
-                    public Object get(long timeout, TimeUnit unit)
+                    public synchronized Object get(long timeout, TimeUnit unit)
                             throws InterruptedException, ExecutionException, TimeoutException {
-                        try {
-                            return logAndHandleResponse(future.get(timeout, unit), url, method.getGenericReturnType());
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
+                        if (!responseAttempted) {
+                            responseAttempted = true;
+                            try {
+                                response = logAndHandleResponse(future.get(timeout, unit),
+                                    url, method.getGenericReturnType());
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
                         }
+                        return response;
                     }
 
                     @Override
@@ -387,6 +421,7 @@ public class RestApiClient implements ApiClient {
                 ServiceProxy<S> asyncProxy = new ServiceProxy<S>(serviceClass, id);
                 asyncProxy.mask = mask;
                 asyncProxy.maskString = maskString;
+                asyncProxy.resultLimit = resultLimit;
                 return Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[] { method.getReturnType() }, asyncProxy);
             } else if ("withNewMask".equals(method.getName()) && noParams) {
@@ -409,6 +444,16 @@ public class RestApiClient implements ApiClient {
                 mask = (Mask) args[0];
                 maskString = null;
                 return null;
+            } else if ("setResultLimit".equals(method.getName()) &&
+                    method.getDeclaringClass() == ResultLimitable.class) {
+                resultLimit = (ResultLimit) args[0];
+                return null;
+            } else if ("getResultLimit".equals(method.getName()) &&
+                    method.getDeclaringClass() == ResultLimitable.class) {
+                return resultLimit;
+            } else if ("getLastResponseTotalItemCount".equals(method.getName()) &&
+                    method.getDeclaringClass() == ResultLimitable.class) {
+                return lastResponseTotalItemCount;
             } else if (Service.class.isAssignableFrom(method.getDeclaringClass())) {
                 return invokeService(method, args);
             } else if (ServiceAsync.class.isAssignableFrom(method.getDeclaringClass())) {
