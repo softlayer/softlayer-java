@@ -5,6 +5,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+/**
+ * Base class for an HTTP client factory. By default the {@link BuiltInHttpClientFactory} is used. This
+ * can be overridden by a custom client factory using the {@link ServiceLoader} pattern. It is also
+ * cached (though not necessarily guaranteed to be a singleton or instantiated only once) upon first access.
+ */
 public abstract class HttpClientFactory {
     
     static volatile HttpClientFactory defaultFactory = null;
@@ -36,6 +41,9 @@ public abstract class HttpClientFactory {
         return result;
     }
 
+    /**
+     * Get the HTTP client for the given request information. The resulting client is only used once.
+     */
     public abstract HttpClient getHttpClient(HttpCredentials credentials, String method,
             String fullUrl, Map<String, List<String>> headers);
 }

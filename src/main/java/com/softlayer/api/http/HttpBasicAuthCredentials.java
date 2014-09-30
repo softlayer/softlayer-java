@@ -1,5 +1,6 @@
 package com.softlayer.api.http;
 
+/** HTTP basic authentication support for username and API key */
 public class HttpBasicAuthCredentials implements HttpCredentials {
 
     public final String username;

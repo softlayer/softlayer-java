@@ -38,6 +38,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         gson = new GsonBuilder().
             disableHtmlEscaping().
             disableInnerClassSerialization().
+            // Two types need special attention: Entity (all non-scalars basically) and GregorianCalendar
             registerTypeAdapterFactory(new EntityTypeAdapterFactory()).
             registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
             serializeNulls().
@@ -54,6 +55,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
     
     @Override
     public JsonMarshaller getJsonMarshaller() {
+        // We can just reuse the common marshaller here to remain performant
         return this;
     }
 
@@ -166,7 +168,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         @Override
         public Entity read(JsonReader in) throws IOException {
             // We are allowed to assume that the first property is apiType always. This allows us to maintain
-            //  a streaming reader
+            //  a streaming reader and is very important.
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
                 return null;
@@ -177,7 +179,9 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             }
             String apiTypeName = in.nextString();
             // If the API type is unrecognized by us (i.e. it's a new type), we just use the type
-            //  we're an adapter for.
+            //  we're an adapter for. So if we have SoftLayer_Something and a newer release of the
+            //  API has a type extending it but we don't have a generated class for it, it will get
+            //  properly serialized to a SoftLayer_Something.
             Class<? extends Entity> clazz = typeClasses.get(apiTypeName);
             Entity result;
             if (clazz == null) {
@@ -269,6 +273,5 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             }
             return calendar;
         }
-        
     }
 }

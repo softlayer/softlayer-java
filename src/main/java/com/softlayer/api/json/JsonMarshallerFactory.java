@@ -3,6 +3,12 @@ package com.softlayer.api.json;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+/**
+ * Base class for an JSON marshaller factory. By default the {@link GsonJsonMarshallerFactory} is used.
+ * This can be overridden by a custom marshaller factory using the {@link ServiceLoader} pattern. It is
+ * also cached (though not necessarily guaranteed to be a singleton or instantiated only once) upon first
+ * access.
+ */
 public abstract class JsonMarshallerFactory {
     
     static volatile JsonMarshallerFactory defaultFactory = null;
@@ -34,5 +40,9 @@ public abstract class JsonMarshallerFactory {
         return result;
     }
     
+    /**
+     * Get a JSON marshaller for use for either marshalling or unmarshalling. The resulting marshaller is
+     * only used once, but this method may be called from multiple threads. 
+     */
     public abstract JsonMarshaller getJsonMarshaller();
 }

@@ -8,12 +8,12 @@ import java.util.concurrent.Future;
 import com.softlayer.api.ResponseHandler;
 
 /**
- * This class is not thread-safe even when using invoke async. This class should only live for the
+ * This class is not thread-safe even when using invoke async. This class will only live for the
  * duration of one HTTP request.
  */
 public interface HttpClient extends Closeable {
 
-    /** Stream to write body contents to (if at all). */
+    /** Stream to write body contents to (if at all). When called, callers are expected to close it. */
     public OutputStream getBodyStream();
     
     /** Make synchronous HTTP invocation. Throws if unable to connect. Errors from the API are returned normally. */

@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ApiProperty {
+    
     /** If set, this is the property name. Otherwise, this defaults to the field name this annotation is on. */
     String value() default "";
     

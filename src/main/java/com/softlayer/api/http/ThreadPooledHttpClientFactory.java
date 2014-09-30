@@ -2,9 +2,7 @@ package com.softlayer.api.http;
 
 import java.util.concurrent.ExecutorService;
 
-/**
- * Class implemented by HTTP client factories that use a Java thread pool
- */
+/** Class implemented by HTTP client factories that use a Java thread pool */
 public abstract class ThreadPooledHttpClientFactory extends HttpClientFactory {
 
     /**

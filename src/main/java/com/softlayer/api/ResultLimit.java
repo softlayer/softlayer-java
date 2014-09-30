@@ -1,6 +1,8 @@
 package com.softlayer.api;
 
+/** Object holding pagination information for an API request */
 public class ResultLimit {
+
     public final int offset;
     public final int limit;
     
