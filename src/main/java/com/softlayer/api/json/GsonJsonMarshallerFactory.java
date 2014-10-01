@@ -11,7 +11,6 @@ import java.lang.reflect.Type;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +31,7 @@ import com.softlayer.api.service.Entity;
 class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMarshaller {
 
     protected final static Gson gson;
-    private final static Map<String, Class<? extends Entity>> typeClasses;
+    final static Map<String, Class<? extends Entity>> typeClasses;
     
     static {
         gson = new GsonBuilder().
@@ -45,12 +44,10 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             create();
         
         ApiTypes types = Entity.class.getPackage().getAnnotation(ApiTypes.class);
-        Map<String, Class<? extends Entity>> classes = new HashMap<String, Class<? extends Entity>>(
-                types.value().length);
+        typeClasses = new HashMap<String, Class<? extends Entity>>(types.value().length);
         for (Class<? extends Entity> clazz : types.value()) {
-            classes.put(clazz.getAnnotation(ApiType.class).value(), clazz);
+            typeClasses.put(clazz.getAnnotation(ApiType.class).value(), clazz);
         }
-        typeClasses = Collections.unmodifiableMap(classes);
     }
     
     @Override

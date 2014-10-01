@@ -17,7 +17,7 @@ public abstract class Example {
             baseUrl += '/';
         }
 
-        run(new RestApiClient(baseUrl).withCredentials(args[0], args[1]).withLoggingEnabled());
+        run(new RestApiClient(baseUrl).withCredentials(args[0], args[1]));
     }
 
     /** Run the example with the given client */

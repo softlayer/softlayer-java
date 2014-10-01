@@ -2,11 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.softlayer.api</groupId>
-  <artifactId>softlayer-api-client</artifactId>
+  <artifactId>softlayer-api-client-examples</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
   <version>1.0.0</version>
-  <name>softlayer-api-client</name>
+  <name>softlayer-api-client-examples</name>
   <url>http://sldn.softlayer.com</url>
   <licenses>
     <license>
@@ -19,59 +19,37 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
   </properties>
-  <repositories>
-    <repository>
-      <id>jcenter</id>
-      <url>http://jcenter.bintray.com/</url>
-    </repository>
-  </repositories>
   <dependencies>
     <dependency>
-	  <groupId>com.google.code.gson</groupId>
-	  <artifactId>gson</artifactId>
-	  <version>2.3</version>
+	  <groupId>com.softlayer.api</groupId>
+	  <artifactId>softlayer-api-client</artifactId>
+	  <version>LATEST</version>
 	</dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <version>1.10.4</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <build>
     <plugins>
-      <!-- Generate services -->
-      <plugin>
-        <artifactId>maven-invoker-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>generate-services</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <pom>gen/pom.xml</pom>
-              <goals>
-                <goal>compile</goal>
-                <goal>exec:java</goal>
-              </goals>
-              <streamLogs>true</streamLogs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+      <!--
+      Manually upgrade resources plugin to 2.6 because of https://jira.codehaus.org/browse/MRESOURCES-140
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>com.softlayer.api.example.Main</mainClass>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -168,18 +168,18 @@ public class RestApiClient implements ApiClient {
     
     protected void logRequest(String httpMethod, String url, Object[] params) {
         // Build JSON
-        String body = "";
+        String body = "no body";
         if (params != null && params.length > 0) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             getJsonMarshallerFactory().getJsonMarshaller().toJson(
                     Collections.singletonMap("parameters", params), out);
             try {
-                body = out.toString("UTF-8");
+                body = "body: " + out.toString("UTF-8");
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
         }
-        System.out.format("Running %s on %s with body: %s\n", httpMethod, url, body);
+        System.out.format("Running %s on %s with %s\n", httpMethod, url, body);
     }
     
     protected void logResponse(String url, int statusCode, String body) {
@@ -263,7 +263,7 @@ public class RestApiClient implements ApiClient {
                 Map<String, List<String>> headers = response.getHeaders();
                 if (headers != null) {
                     List<String> totalItems = headers.get("X-SoftLayer-Total-Items");
-                    if (!totalItems.isEmpty()) {
+                    if (totalItems != null && !totalItems.isEmpty()) {
                         lastResponseTotalItemCount = Integer.valueOf(totalItems.get(0));
                     }
                 }
