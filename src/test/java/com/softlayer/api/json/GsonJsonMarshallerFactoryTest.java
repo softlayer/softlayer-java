@@ -9,45 +9,25 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
 import org.junit.Test;
 
 import com.google.gson.reflect.TypeToken;
-import com.softlayer.api.annotation.ApiProperty;
-import com.softlayer.api.annotation.ApiType;
 import com.softlayer.api.service.Entity;
+import com.softlayer.api.service.TestEntity;
 
 public class GsonJsonMarshallerFactoryTest {
     
     static {
+        addTestEntityToGson();
+    }
+    
+    public static void addTestEntityToGson() {
         GsonJsonMarshallerFactory.typeClasses.put("SoftLayer_TestEntity", TestEntity.class);
     }
 
-    @ApiType("SoftLayer_TestEntity")
-    public static class TestEntity extends Entity {
-        
-        @ApiProperty("bar")
-        protected String foo;
-        
-        @ApiProperty(canBeNullOrNotSet = true)
-        protected String baz;
-        protected boolean bazSpecified;
-        
-        @ApiProperty
-        protected GregorianCalendar date;
-        
-        protected String notApiProperty;
-        
-        @ApiProperty
-        protected TestEntity child;
-        
-        @ApiProperty
-        protected List<TestEntity> moreChildren;
-    }
-    
     private <T> T fromJson(Type type, String json) throws Exception {
         return new GsonJsonMarshallerFactory().getJsonMarshaller().
                 fromJson(type, new ByteArrayInputStream(json.getBytes("UTF-8")));
@@ -84,39 +64,39 @@ public class GsonJsonMarshallerFactoryTest {
             + "}");
         assertEquals(TestEntity.class, entity.getClass());
         TestEntity obj = (TestEntity) entity;
-        assertEquals("some string", obj.foo);
+        assertEquals("some string", obj.getFoo());
         assertEquals(2, obj.getUnknownProperties().size());
         assertEquals("another string", obj.getUnknownProperties().get("foo"));
-        assertNull(obj.baz);
-        assertTrue(obj.bazSpecified);
+        assertNull(obj.getBaz());
+        assertTrue(obj.isBazSpecified());
         GregorianCalendar expectedDate = new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25);
         expectedDate.setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
-        assertEquals(expectedDate.getTimeInMillis(), obj.date.getTimeInMillis());
-        assertNull(obj.notApiProperty);
+        assertEquals(expectedDate.getTimeInMillis(), obj.getDate().getTimeInMillis());
+        assertNull(obj.getNotApiProperty());
         assertEquals("bad value", obj.getUnknownProperties().get("notApiProperty"));
-        assertEquals("child string", obj.child.foo);
-        assertNull(obj.child.baz);
-        assertFalse(obj.child.bazSpecified);
-        assertEquals(2, obj.moreChildren.size());
-        assertEquals("child 1", obj.moreChildren.get(0).foo);
-        assertEquals("child 2", obj.moreChildren.get(1).foo);
+        assertEquals("child string", obj.getChild().getFoo());
+        assertNull(obj.getChild().getBaz());
+        assertFalse(obj.getChild().isBazSpecified());
+        assertEquals(2, obj.getMoreChildren().size());
+        assertEquals("child 1", obj.getMoreChildren().get(0).getFoo());
+        assertEquals("child 2", obj.getMoreChildren().get(1).getFoo());
     }
     
     @Test
     @SuppressWarnings("unchecked")
     public void testWrite() throws Exception {
         TestEntity obj = new TestEntity();
-        obj.foo = "some string";
-        obj.baz = null;
-        obj.bazSpecified = true;
-        obj.date = new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25);
-        obj.date.setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
-        obj.notApiProperty = "bad value";
-        obj.child = new TestEntity();
-        obj.child.foo = "child string";
-        obj.moreChildren = Arrays.asList(new TestEntity(), new TestEntity());
-        obj.moreChildren.get(0).foo = "child 1";
-        obj.moreChildren.get(1).foo = "child 2";
+        obj.setFoo("some string");
+        obj.setBaz(null);
+        obj.setDate(new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25));
+        obj.getDate().setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
+        obj.setNotApiProperty("bad value");
+        obj.setChild(new TestEntity());
+        obj.getChild().setFoo("child string");
+        obj.getMoreChildren().add(new TestEntity());
+        obj.getMoreChildren().add(new TestEntity());
+        obj.getMoreChildren().get(0).setFoo("child 1");
+        obj.getMoreChildren().get(1).setFoo("child 2");
         
         Map<String, Object> actual = fromJson(new TypeToken<Map<String, Object>>() { }.getType(), toJson(obj));
         Map<String, Object> expected = new HashMap<String, Object>(6);

@@ -380,7 +380,7 @@ public class RestApiClient implements ApiClient {
                             try {
                                 response = logAndHandleResponse(future.get(), url, method.getGenericReturnType());
                             } catch (Exception e) {
-                                throw new RuntimeException(e);
+                                throw new ExecutionException(e);
                             }
                         }
                         return response;

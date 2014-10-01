@@ -214,7 +214,10 @@ public class ClassWriter extends JavaWriter {
         }
         // Method for every non-local property too...
         for (TypeClass.Property property : type.properties) {
-            emitServiceMethod(property, false);
+            // Only relational properties support getters
+            if (property.meta.form == Meta.PropertyForm.RELATIONAL) {
+                emitServiceMethod(property, false);
+            }
         }
         endType().emitEmptyLine();
         
@@ -236,7 +239,10 @@ public class ClassWriter extends JavaWriter {
         }
         // Method for every non-local property too...
         for (TypeClass.Property property : type.properties) {
-            emitServiceMethod(property, true);
+            // Only relational properties support getters
+            if (property.meta.form == Meta.PropertyForm.RELATIONAL) {
+                emitServiceMethod(property, true);
+            }
         }
         endType().emitEmptyLine();
         
