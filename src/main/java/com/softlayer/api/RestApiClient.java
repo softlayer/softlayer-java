@@ -193,8 +193,7 @@ public class RestApiClient implements ApiClient {
                 new Class<?>[] { serviceClass }, new ServiceProxy<S>(serviceClass, id));
     }
 
-    class ServiceProxy<S extends Service>
-            implements InvocationHandler {
+    class ServiceProxy<S extends Service> implements InvocationHandler {
         
         final Class<S> serviceClass;
         final Long id;
