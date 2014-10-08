@@ -5,6 +5,10 @@
 This library provides a JVM client for the [SoftLayer API](http://sldn.softlayer.com/article/SoftLayer-API-Overview). It
 has code generated and compiled via Maven. The client can work with any Java 6+ runtime. It uses the code generation
 project in `gen/` to generate the service and type related code.
+Although likely to work in resource-constrained
+
+environments (i.e. Android, J2ME, etc), using this is not recommended; Use the
+[REST](http://sldn.softlayer.com/article/REST) API instead.
 
 By default the HTTP client is the Java `HttpUrlConnection` and the JSON marshalling is done by
 [Gson](https://code.google.com/p/google-gson/). Both of these pieces can be exchanged for alternative implementations
@@ -85,12 +89,14 @@ import com.softlayer.api.service.virtual.Guest;
 
 Guest guest = new Guest();
 guest.setHostname("myhostname");
-guest.setDomain("example.dom");
+guest.setDomain("example.com");
 guest.setStartCpus(1);
 guest.setMaxMemory(1024);
 guest.setHourlyBillingFlag(true);
 guest.setOperatingSystemReferenceCode("UBUNTU_LATEST");
 guest.setLocalDiskFlag(false);
+guest.setDatacenter(new Location());
+guest.getDatacenter().setName("dal05");
 guest = Guest.service(client).createObject(guest);
 System.out.println("Virtual server ordered with ID: " + guest.getId());
 ```
@@ -212,7 +218,7 @@ import com.softlayer.api.service.Account;
 import com.softlayer.api.service.Ticket;
 
 Account.Service service = Account.service(client);
-service.setResultLimit(new ResultLimit(10, 0));
+service.setResultLimit(new ResultLimit(10));
 for (Ticket ticket : service.getTickets()) {
     System.out.println("Got ticket " + ticket.getTitle());
 }

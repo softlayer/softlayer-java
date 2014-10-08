@@ -39,7 +39,7 @@ public class RestApiClient implements ApiClient {
     static final Map<String, List<String>> HEADERS;
     
     static {
-        HEADERS = Collections.singletonMap("X-SoftLayer-Include-API-Types", Collections.singletonList("true"));
+        HEADERS = Collections.singletonMap("SoftLayer-Include-Types", Collections.singletonList("true"));
     }
     
     private final String baseUrl;
@@ -248,7 +248,7 @@ public class RestApiClient implements ApiClient {
             }
             try {
                 // If it's not a 200, we have a problem
-                if (response.getStatusCode() < 200 || response.getStatusCode() > 300) {
+                if (response.getStatusCode() < 200 || response.getStatusCode() >= 300) {
                     if (stream == null) {
                         throw new ApiException("Unknown error", null, response.getStatusCode());
                     }
@@ -261,7 +261,7 @@ public class RestApiClient implements ApiClient {
                 lastResponseTotalItemCount = null;
                 Map<String, List<String>> headers = response.getHeaders();
                 if (headers != null) {
-                    List<String> totalItems = headers.get("X-SoftLayer-Total-Items");
+                    List<String> totalItems = headers.get("SoftLayer-Total-Items");
                     if (totalItems != null && !totalItems.isEmpty()) {
                         lastResponseTotalItemCount = Integer.valueOf(totalItems.get(0));
                     }
@@ -269,7 +269,9 @@ public class RestApiClient implements ApiClient {
                 // Just return the serialized response
                 return getJsonMarshallerFactory().getJsonMarshaller().fromJson(returnType, stream);
             } finally {
-                try { stream.close(); } catch (Exception e) { }
+                try {
+                    stream.close();
+                } catch (Exception e) { }
             }
         }
         

@@ -25,7 +25,7 @@ public abstract class HttpClientFactory {
         if (result == null) {
             Iterator<HttpClientFactory> iterator = ServiceLoader.load(HttpClientFactory.class).iterator();
             if (!iterator.hasNext()) {
-                // Default to Gson (which may not be present, but we just let NoClassDefFoundError throw)
+                // Default to built-in version
                 result = new BuiltInHttpClientFactory();
             } else {
                 result = iterator.next();

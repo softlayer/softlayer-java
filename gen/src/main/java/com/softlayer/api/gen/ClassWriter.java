@@ -2,8 +2,10 @@ package com.softlayer.api.gen;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -59,8 +61,8 @@ public class ClassWriter extends JavaWriter {
     public static void emitType(File baseDir, TypeClass type) throws IOException {
         File fileDir = new File(baseDir, type.packageName.replace('.', '/'));
         fileDir.mkdirs();
-        Writer writer = new BufferedWriter(
-            new FileWriter(new File(fileDir, type.className + ".java")));
+        Writer writer = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream(new File(fileDir, type.className + ".java")), "UTF-8"));
         try {
             new ClassWriter(writer, type).emitType();
         } finally {

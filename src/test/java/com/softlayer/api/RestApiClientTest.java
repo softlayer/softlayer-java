@@ -373,7 +373,7 @@ public class RestApiClientTest {
     @Test
     public void testWithTotalItemsResponseHeader() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.singletonMap("X-SoftLayer-Total-Items", Collections.singletonList("234")),
+            Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
@@ -388,7 +388,7 @@ public class RestApiClientTest {
     @Test
     public void testWithTotalItemsAsyncFutureResponseHeader() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.singletonMap("X-SoftLayer-Total-Items", Collections.singletonList("234")),
+            Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
@@ -403,7 +403,7 @@ public class RestApiClientTest {
     @Test
     public void testWithTotalItemsAsyncCallbackResponseHeader() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.singletonMap("X-SoftLayer-Total-Items", Collections.singletonList("234")),
+            Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);

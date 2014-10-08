@@ -8,6 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -40,6 +42,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             // Two types need special attention: Entity (all non-scalars basically) and GregorianCalendar
             registerTypeAdapterFactory(new EntityTypeAdapterFactory()).
             registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
+            registerTypeAdapter(BigInteger.class, new BigIntegerTypeAdapter()).
             serializeNulls().
             create();
         
@@ -171,8 +174,8 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
                 return null;
             }
             in.beginObject();
-            if (!"apiType".equals(in.nextName())) {
-                throw new RuntimeException("Expected 'apiType' as first property");
+            if (!"complexType".equals(in.nextName())) {
+                throw new RuntimeException("Expected 'complexType' as first property");
             }
             String apiTypeName = in.nextString();
             // If the API type is unrecognized by us (i.e. it's a new type), we just use the type
@@ -235,10 +238,20 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         //  JAXB libraries.
         // Ref: http://stackoverflow.com/questions/2201925/converting-iso-8601-compliant-string-to-java-util-date
         
-        final ThreadLocal<DateFormat> format = new ThreadLocal<DateFormat>() {
+        final ThreadLocal<DateFormat> secondFormat = new ThreadLocal<DateFormat>() {
             @Override
             protected DateFormat initialValue() {
                 return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+            }
+        };
+        
+        // Some times come back with fractions of a second all the way down to 6 digits.
+        //  Luckily we can just use the presence of a decimal point as a discriminator between
+        //  this format and the one above.
+        final ThreadLocal<DateFormat> subSecondFormat = new ThreadLocal<DateFormat>() {
+            @Override
+            protected DateFormat initialValue() {
+                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             }
         };
 
@@ -247,7 +260,8 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             if (value == null) {
                 out.nullValue();
             } else {
-                String date = format.get().format(value.getTime());
+                // Always use second-level format here
+                String date = secondFormat.get().format(value.getTime());
                 // Add the colon
                 out.value(date.substring(0, date.length() - 2) + ':' + date.substring(date.length() - 2));
             }
@@ -262,13 +276,69 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             String date = in.nextString();
             // Remove the colon
             date = date.substring(0, date.length() - 3) + date.substring(date.length() - 2);
+            // Use decimal precense to determine format and trim to ms precision
+            DateFormat format;
+            int decimalIndex = date.indexOf('.');
+            if (decimalIndex != -1) {
+                date = trimToMillisecondPrecision(date, decimalIndex);
+                format = subSecondFormat.get();
+            } else {
+                format = secondFormat.get();
+            }
+            
             GregorianCalendar calendar = new GregorianCalendar();
             try {
-                calendar.setTime(format.get().parse(date));
+                calendar.setTime(format.parse(date));
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
             return calendar;
+        }
+        
+        private String trimToMillisecondPrecision(String date, int decimalIndex) {
+            // If there is a decimal we have to only keep the first three numeric characters
+            //  after it (and pad with 0's if fewer than three)
+            StringBuilder newDate = new StringBuilder(date);
+            int offset = 1;
+            do {
+                if (!Character.isDigit(newDate.charAt(decimalIndex + offset))) {
+                    switch (offset) {
+                        case 1:
+                            newDate.insert(decimalIndex + offset, "000");
+                            break;
+                        case 2:
+                            newDate.insert(decimalIndex + offset, "00");
+                            break;
+                        case 3:
+                            newDate.insert(decimalIndex + offset, "0");
+                            break;
+                    }
+                    break;
+                } else if (offset > 3) {
+                    newDate.deleteCharAt(decimalIndex + offset);
+                } else {
+                    offset++;
+                }
+            } while (true);
+            return newDate.toString();
+        }
+    }
+    
+    static class BigIntegerTypeAdapter extends TypeAdapter<BigInteger> {
+
+        @Override
+        public void write(JsonWriter out, BigInteger value) throws IOException {
+            // Just write out the toString
+            out.value(value);
+        }
+
+        @Override
+        public BigInteger read(JsonReader in) throws IOException {
+            // Do the BigDecimal parsing and just convert. The regular Gson BigInteger parser doesn't support
+            //  exponents like we need to. Basically, the BigDecimal string constructor is better than the
+            //  BigInteger one.
+            BigDecimal value = gson.fromJson(in, BigDecimal.class);
+            return value == null ? null : value.toBigInteger();
         }
     }
 }

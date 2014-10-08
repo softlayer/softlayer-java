@@ -159,13 +159,6 @@ public class MetaConverter {
                                 if (!parametersEqual) {
                                     break;
                                 }
-//                                if ((methodParameter.typeArray && parentParameter.typeArray &&
-//                                        !methodParameter.type.equals(parentMethod.type)) ||
-//                                        !methodParameter.type.equals(parentMethod.type) ||  
-//                                        methodParameter.typeArray != parentParameter.typeArray) {
-//                                    parametersEqual = false;
-//                                    break;
-//                                }
                             }
                             if (parametersEqual) {
                                 // Now we know we have invariance; we have to change the Java method name. We just
@@ -201,9 +194,12 @@ public class MetaConverter {
             imports.put("BigDecimal", javaType);
         } else if ("enum".equals(typeName) || "json".equals(typeName) || "string".equals(typeName)) {
             javaType = "String";
-        } else if ("int".equals(typeName) || "integer".equals(typeName) || "nonNegativeInteger".equals(typeName) ||
+        } else if ("int".equals(typeName) || "integer".equals(typeName) ||
                 "unsignedInt".equals(typeName) || "unsignedLong".equals(typeName)) {
             javaType = "Long";
+        } else if ("nonNegativeInteger".equals(typeName)) {
+            javaType = "java.math.BigInteger";
+            imports.put("BigInteger", javaType);
         } else if ("void".equals(typeName)) {
             javaType = "Void";
         } else if (!meta.types.containsKey(typeName)) {

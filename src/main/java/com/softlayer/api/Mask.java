@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/** Object mask header. See http://sldn.softlayer.com/article/Object-Masks */
+/** Object mask parameter. See http://sldn.softlayer.com/article/Object-Masks */
 public class Mask {
     private final Set<String> localProperties = new HashSet<String>();
     private final Map<String, Mask> subMasks = new HashMap<String, Mask>();

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Type;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -47,19 +48,19 @@ public class GsonJsonMarshallerFactoryTest {
     public void testRead() throws Exception {
         Entity entity = fromJson(Entity.class,
             "{"
-            + "\"apiType\": \"SoftLayer_TestEntity\","
+            + "\"complexType\": \"SoftLayer_TestEntity\","
             + "\"bar\": \"some string\","
             + "\"foo\": \"another string\","
             + "\"baz\": null,"
             + "\"date\": \"1984-02-25T20:15:25-06:00\","
             + "\"notApiProperty\": \"bad value\","
             + "\"child\": {"
-            + "    \"apiType\": \"SoftLayer_TestEntity\","
+            + "    \"complexType\": \"SoftLayer_TestEntity\","
             + "    \"bar\": \"child string\""
             + "},"
             + "\"moreChildren\": ["
-            + "    { \"apiType\": \"SoftLayer_TestEntity\", \"bar\": \"child 1\" },"
-            + "    { \"apiType\": \"SoftLayer_TestEntity\", \"bar\": \"child 2\" }"
+            + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 1\" },"
+            + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 2\" }"
             + "]"
             + "}");
         assertEquals(TestEntity.class, entity.getClass());
@@ -116,5 +117,48 @@ public class GsonJsonMarshallerFactoryTest {
         child2Map.put("bar", "child 2");
         expected.put("moreChildren", Arrays.asList(child1Map, child2Map));
         assertEquals(expected, actual);
+    }
+    
+    @Test
+    public void testReadBothDateFormats() throws Exception {
+        String regular = "\"1984-02-25T20:15:25-06:00\"";
+        Calendar expected = new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25);
+        expected.setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
+        assertEquals(expected.getTimeInMillis(),
+            fromJson(GregorianCalendar.class, regular).getTimeInMillis());
+        
+        String subSecondNoDigits = "\"1984-02-25T20:15:25.-06:00\"";
+        assertEquals(expected.getTimeInMillis(),
+            fromJson(GregorianCalendar.class, subSecondNoDigits).getTimeInMillis());
+        
+        String subSecondOneDigit = "\"1984-02-25T20:15:25.1-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 100,
+            fromJson(GregorianCalendar.class, subSecondOneDigit).getTimeInMillis());
+        
+        String subSecondTwoDigits = "\"1984-02-25T20:15:25.12-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 120,
+            fromJson(GregorianCalendar.class, subSecondTwoDigits).getTimeInMillis());
+        
+        String subSecondThreeDigits = "\"1984-02-25T20:15:25.123-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 123,
+            fromJson(GregorianCalendar.class, subSecondThreeDigits).getTimeInMillis());
+        
+        String subSecondFourDigits = "\"1984-02-25T20:15:25.1239-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 123,
+            fromJson(GregorianCalendar.class, subSecondFourDigits).getTimeInMillis());
+        
+        String subSecondSixDigits = "\"1984-02-25T20:15:25.123987-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 123,
+            fromJson(GregorianCalendar.class, subSecondSixDigits).getTimeInMillis());
+        
+        String subSecondTenDigits = "\"1984-02-25T20:15:25.1239876543-06:00\"";
+        assertEquals(expected.getTimeInMillis() + 123,
+            fromJson(GregorianCalendar.class, subSecondTenDigits).getTimeInMillis());
+    }
+    
+    @Test
+    public void testBigIntegerWithExponents() throws Exception {
+        assertEquals(BigInteger.valueOf(123), fromJson(BigInteger.class, "123"));
+        assertEquals(new BigInteger("18446744073710000000"), fromJson(BigInteger.class, "1.844674407371e+19"));
     }
 }

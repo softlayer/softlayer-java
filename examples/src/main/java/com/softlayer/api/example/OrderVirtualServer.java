@@ -38,7 +38,7 @@ public class OrderVirtualServer extends Example {
             }
         }
 
-        // Datacenters are represented by there name. Here the Amsterdam datacenter is used.
+        // Datacenters are represented by their name. Here the Amsterdam datacenter is used.
         guest.setDatacenter(new Location());
         guest.getDatacenter().setName("ams01");
 

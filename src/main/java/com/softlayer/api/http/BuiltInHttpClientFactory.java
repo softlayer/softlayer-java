@@ -53,7 +53,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
         try {
             if (threadPool == null) {
                 // Here, we want to use a cached thread pool by default, but we need a custom thread
-                //  factory to make the threads daemon threads. This defalt can be overridden by users,
+                //  factory to make the threads daemon threads. This default can be overridden by users,
                 //  but in general we do not want the API client to hold a process open by default.
                 threadPool = Executors.newCachedThreadPool(new ThreadFactory() {
                     final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
