@@ -39,11 +39,13 @@ public class MetaConverter {
     protected final String basePackageName;
     protected final Meta meta;
     protected final Meta.Type type;
+    protected final String className;
     
     public MetaConverter(String basePackageName, Meta meta, Meta.Type type) {
         this.basePackageName = basePackageName;
         this.meta = meta;
         this.type = type;
+        className = getClassName(type.name);
     }
     
     public String getClassName(String typeName) {
@@ -85,7 +87,6 @@ public class MetaConverter {
     public TypeClass buildTypeClass() {
         imports.clear();
         String packageName = getPackageName(type.name);
-        String className = getClassName(type.name);
         String base = null;
         Meta.Type baseMeta = null;
         String baseService = null;
@@ -109,6 +110,11 @@ public class MetaConverter {
             }
         }
         
+        return new TypeClass(type, imports, packageName, className, base, baseMeta,
+            baseService, baseServiceMeta, getProperties(), getMethods(baseMeta));
+    }
+    
+    public List<TypeClass.Property> getProperties() {
         List<TypeClass.Property> properties = new ArrayList<TypeClass.Property>(type.properties.size());
         for (Meta.Property property : type.properties.values()) {
             String javaType = getJavaType(property.type, property.typeArray);
@@ -121,7 +127,10 @@ public class MetaConverter {
                 }
             }
         }
-        
+        return properties;
+    }
+    
+    public List<TypeClass.Method> getMethods(Meta.Type baseMeta) {
         List<TypeClass.Method> methods = new ArrayList<TypeClass.Method>(type.methods.size());
         for (Meta.Method method : type.methods.values()) {
             String javaType = getJavaType(method.type, method.typeArray);
@@ -174,10 +183,9 @@ public class MetaConverter {
                 }
             }
         }
-        
-        return new TypeClass(type, imports, packageName, className, base, baseMeta,
-            baseService, baseServiceMeta, properties, methods);
+        return methods;
     }
+    
     public String getJavaType(String typeName, boolean array) {
     
         String javaType;

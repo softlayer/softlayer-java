@@ -20,6 +20,8 @@ import com.squareup.javawriter.JavaWriter;
 
 public class ClassWriter extends JavaWriter {
 
+    public static final String SLDN_URL_BASE_PATH = "http://sldn.softlayer.com/reference/";
+    
     public static final String TYPE_API_CLIENT = "com.softlayer.api.ApiClient";
     public static final String TYPE_API_METHOD = "com.softlayer.api.annotation.ApiMethod";
     public static final String TYPE_API_PROPERTY = "com.softlayer.api.annotation.ApiProperty";
@@ -27,7 +29,6 @@ public class ClassWriter extends JavaWriter {
     public static final String TYPE_API_TYPE = "com.softlayer.api.annotation.ApiType";
     public static final String TYPE_API_TYPES = "com.softlayer.api.annotation.ApiTypes";
     public static final String TYPE_CALLABLE = "java.util.concurrent.Callable";
-    public static final String TYPE_ENTITY = "com.softlayer.api.service.Entity";
     public static final String TYPE_FUTURE = "java.util.concurrent.Future";
     public static final String TYPE_MASK = "com.softlayer.api.Mask";
     public static final String TYPE_RESPONSE_HANDLER = "com.softlayer.api.ResponseHandler";
@@ -192,7 +193,7 @@ public class ClassWriter extends JavaWriter {
         } else {
             javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
         }
-        javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/service/" +
+        javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "services/" +
                 type.meta.name + "\">" + type.meta.name + "</a>";
         emitJavadoc(javadoc);
         
@@ -260,7 +261,7 @@ public class ClassWriter extends JavaWriter {
             } else {
                 javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
             }
-            javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/services/" + type.meta.name +
+            javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "services/" + type.meta.name +
                 "/" + method.meta.name + "\">" + type.meta.name + "::" + method.meta.name + "</a>";
             emitJavadoc(javadoc);
             
@@ -317,7 +318,7 @@ public class ClassWriter extends JavaWriter {
             } else {
                 javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
             }
-            javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/services/" + type.meta.name +
+            javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "services/" + type.meta.name +
                 "/" + name + "\">" + type.meta.name + "::" + name + "</a>";
             emitJavadoc(javadoc);
             
@@ -354,7 +355,7 @@ public class ClassWriter extends JavaWriter {
         } else {
             javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
         }
-        javadoc += "@see <a href=\"http://sldn.softlayer.com/reference/datatypes/" +
+        javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "datatypes/" +
                 type.meta.name + "\">" + type.meta.name + "</a>";
         emitJavadoc(javadoc);
         

@@ -39,7 +39,8 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         gson = new GsonBuilder().
             disableHtmlEscaping().
             disableInnerClassSerialization().
-            // Two types need special attention: Entity (all non-scalars basically) and GregorianCalendar
+            // Three types need special attention:
+            //  Entity (all non-scalars basically), GregorianCalendar, and BigIntegers
             registerTypeAdapterFactory(new EntityTypeAdapterFactory()).
             registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
             registerTypeAdapter(BigInteger.class, new BigIntegerTypeAdapter()).
@@ -167,7 +168,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
 
         @Override
         public Entity read(JsonReader in) throws IOException {
-            // We are allowed to assume that the first property is apiType always. This allows us to maintain
+            // We are allowed to assume that the first property is complexType always. This allows us to maintain
             //  a streaming reader and is very important.
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
@@ -196,7 +197,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         }
         
         private Entity readForThisType(JsonReader in) throws IOException {
-            // Begin/end object (and the first "apiType" property) are done outside of here
+            // Begin/end object (and the first "complexType" property) are done outside of here
             Entity entity;
             try {
                 entity = typeClass.newInstance();
@@ -276,7 +277,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             String date = in.nextString();
             // Remove the colon
             date = date.substring(0, date.length() - 3) + date.substring(date.length() - 2);
-            // Use decimal precense to determine format and trim to ms precision
+            // Use decimal presense to determine format and trim to ms precision
             DateFormat format;
             int decimalIndex = date.indexOf('.');
             if (decimalIndex != -1) {

@@ -130,7 +130,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
 
         @Override
         public HttpResponse invokeSync(Callable<?> setupBody) {
-            // We let HTTP URL connection do it's invocation when it wants. The built-in HTTP connection
+            // We let HTTP URL connection do its invocation when it wants. The built-in HTTP connection
             //  usually starts a stream when the request method is set or when the output or response code
             //  is requested. It switches from send to receive when the output or response code is requested.
             //  Its resources are closed when the send stream (if used) and receive stream (if used) are
