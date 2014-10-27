@@ -1,4 +1,4 @@
-# softlayer-api-client
+# softlayer-java
 
 ## Introduction
 
@@ -265,4 +265,4 @@ fully qualified class name of your implementation on a single line in a file in 
 
 ## Copyright
 
-This software is Copyright (c) 2014 SoftLayer Technologies, Inc. See the bundled LICENSE file for more information.
+This software is Copyright (c) 2014 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
