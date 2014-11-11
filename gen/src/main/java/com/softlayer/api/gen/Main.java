@@ -43,7 +43,7 @@ public class Main {
             String dirString = getArg("--src", argList);
             dir = new File(dirString != null ? dirString : "../src/main/java");
             String urlString = getArg("--url", argList);
-            url = new URL(urlString != null ? urlString : "https://api.softlayer.com/metadata");
+            url = new URL(urlString != null ? urlString : "https://api.softlayer.com/metadata/v3.1");
             whitelist = getRestriction(getArg("--whitelist", argList));
             blacklist = getRestriction(getArg("--blacklist", argList));
             if (whitelist != null && blacklist != null) {
