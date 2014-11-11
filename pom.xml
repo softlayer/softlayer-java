@@ -6,7 +6,8 @@
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
   <version>0.1.0</version>
-  <name>softlayer-api-client</name>
+  <name>SoftLayer API Client for Java</name>
+  <description>API client for accessing the SoftLayer API</description>
   <url>http://sldn.softlayer.com</url>
   <licenses>
     <license>
@@ -15,6 +16,25 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+  <developers>
+    <developer>
+      <id>cretz</id>
+      <name>Chad Retz</name>
+      <email>cretz@softlayer.com</email>
+      <organization>SoftLayer</organization>
+      <organizationUrl>http://softlayer.com</organizationUrl>
+      <roles>
+        <role>owner</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-6</timezone>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git@github.com:softlayer/softlayer-java.git</connection>
+    <developerConnection>scm:git:git@github.com:softlayer/softlayer-java.git</developerConnection>
+    <url>git@github.com:softlayer/softlayer-java.git</url>
+  </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
