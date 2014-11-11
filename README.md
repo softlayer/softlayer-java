@@ -1,4 +1,4 @@
-# softlayer-java
+# SoftLayer API Client for Java
 
 ## Introduction
 
