@@ -21,10 +21,10 @@
   </properties>
   <dependencies>
     <dependency>
-	  <groupId>com.softlayer.api</groupId>
-	  <artifactId>softlayer-api-client</artifactId>
-	  <version>LATEST</version>
-	</dependency>
+      <groupId>com.softlayer.api</groupId>
+      <artifactId>softlayer-api-client</artifactId>
+      <version>LATEST</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
