@@ -322,7 +322,12 @@ public class ClassWriter extends JavaWriter {
                 "/" + name + "\">" + type.meta.name + "::" + name + "</a>";
             emitJavadoc(javadoc);
             
-            emitAnnotationWithAttrs(TYPE_API_METHOD, "instanceRequired", true);
+            // Instance is only required if it's not an account property
+            if ("SoftLayer_Account".equals(type.meta.name)) {
+            	emitAnnotation(TYPE_API_METHOD);
+            } else {
+            	emitAnnotationWithAttrs(TYPE_API_METHOD, "instanceRequired", true);
+            }
         } else {
             // Otherwise, just a javadoc link
             emitJavadoc("Async version of {@link Service#" + name + "}");
