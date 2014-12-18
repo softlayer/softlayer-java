@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -313,7 +314,7 @@ public class RestApiClientTest {
         service.withMask().child().baz();
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-            + "?objectMask=mask%5Bbar%2Cchild%5Bbaz%2Cdate%5D%5D", http.fullUrl);
+            + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
     
@@ -332,7 +333,7 @@ public class RestApiClientTest {
         service.setMask(mask);
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-            + "?objectMask=mask%5Bbar%2Cchild%5Bbaz%2Cdate%5D%5D", http.fullUrl);
+            + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
     

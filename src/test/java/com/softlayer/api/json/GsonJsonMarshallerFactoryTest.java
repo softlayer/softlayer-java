@@ -90,7 +90,6 @@ public class GsonJsonMarshallerFactoryTest {
         obj.setFoo("some string");
         obj.setBaz(null);
         obj.setDate(new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25));
-        obj.getDate().setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
         obj.setNotApiProperty("bad value");
         obj.setChild(new TestEntity());
         obj.getChild().setFoo("child string");
@@ -104,7 +103,11 @@ public class GsonJsonMarshallerFactoryTest {
         expected.put("complexType", "SoftLayer_TestEntity");
         expected.put("bar", "some string");
         expected.put("baz", null);
-        expected.put("date", "1984-02-25T20:15:25-06:00");
+        int offsetMinutes = TimeZone.getDefault().getOffset(obj.getDate().getTimeInMillis()) / 60000;
+        String expectedTimeZone =
+    		(offsetMinutes < 0 ? '-' : '+') +
+    		String.format("%1$02d:%2$02d", Math.abs(offsetMinutes / 60), Math.abs(offsetMinutes % 60));
+        expected.put("date", "1984-02-25T20:15:25" + expectedTimeZone);
         Map<String, Object> childMap = new HashMap<String, Object>();
         childMap.put("complexType", "SoftLayer_TestEntity");
         childMap.put("bar", "child string");

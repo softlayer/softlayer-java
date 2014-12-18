@@ -277,7 +277,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             String date = in.nextString();
             // Remove the colon
             date = date.substring(0, date.length() - 3) + date.substring(date.length() - 2);
-            // Use decimal presense to determine format and trim to ms precision
+            // Use decimal presence to determine format and trim to ms precision
             DateFormat format;
             int decimalIndex = date.indexOf('.');
             if (decimalIndex != -1) {

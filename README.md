@@ -1,5 +1,7 @@
 # SoftLayer API Client for Java
 
+[![Build Status](https://travis-ci.org/softlayer/softlayer-java.svg)](https://travis-ci.org/softlayer/softlayer-java)
+
 ## Introduction
 
 This library provides a JVM client for the [SoftLayer API](http://sldn.softlayer.com/article/SoftLayer-API-Overview). It
