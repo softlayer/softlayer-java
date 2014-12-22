@@ -4,7 +4,7 @@
   <artifactId>softlayer-api-client</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <name>SoftLayer API Client for Java</name>
   <description>API client for accessing the SoftLayer API</description>
   <url>http://sldn.softlayer.com</url>
