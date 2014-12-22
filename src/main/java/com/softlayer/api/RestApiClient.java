@@ -136,7 +136,7 @@ public class RestApiClient implements ApiClient {
         }
     }
     
-    protected String getFullUrl(String serviceName, String methodName, Long id,
+    protected String getFullUrl(String serviceName, String methodName, String id,
             ResultLimit resultLimit, String maskString) {
         StringBuilder url = new StringBuilder(baseUrl + serviceName);
         // ID present? add it
@@ -188,7 +188,7 @@ public class RestApiClient implements ApiClient {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <S extends Service> S createService(Class<S> serviceClass, Long id) {
+    public <S extends Service> S createService(Class<S> serviceClass, String id) {
         return (S) Proxy.newProxyInstance(getClass().getClassLoader(),
                 new Class<?>[] { serviceClass }, new ServiceProxy<S>(serviceClass, id));
     }
@@ -196,13 +196,13 @@ public class RestApiClient implements ApiClient {
     class ServiceProxy<S extends Service> implements InvocationHandler {
         
         final Class<S> serviceClass;
-        final Long id;
+        final String id;
         Mask mask;
         String maskString;
         ResultLimit resultLimit;
         Integer lastResponseTotalItemCount;
         
-        public ServiceProxy(Class<S> serviceClass, Long id) {
+        public ServiceProxy(Class<S> serviceClass, String id) {
             this.serviceClass = serviceClass;
             this.id = id;
         }
@@ -283,7 +283,7 @@ public class RestApiClient implements ApiClient {
             }
             String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
             final String httpMethod = getHttpMethodFromMethodName(methodName);
-            Long methodId = methodInfo.instanceRequired() ? this.id : null;
+            String methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
                     methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
@@ -322,7 +322,7 @@ public class RestApiClient implements ApiClient {
             }
             String methodName = methodInfo.value().isEmpty() ? method.getName() : methodInfo.value();
             final String httpMethod = getHttpMethodFromMethodName(methodName);
-            Long methodId = methodInfo.instanceRequired() ? this.id : null;
+            String methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
                     methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);

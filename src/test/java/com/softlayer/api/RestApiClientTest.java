@@ -47,13 +47,13 @@ public class RestApiClientTest {
         assertEquals("http://example.com/SomeService/someMethod.json",
             client.getFullUrl("SomeService", "someMethod", null, null, null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json",
-            client.getFullUrl("SomeService", "someMethod", 1234L, null, null));
+            client.getFullUrl("SomeService", "someMethod", "1234", null, null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?resultLimit=5,6",
-            client.getFullUrl("SomeService", "someMethod", 1234L, new ResultLimit(5, 6), null));
+            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?resultLimit=5,6&objectMask=someMask%26%26",
-            client.getFullUrl("SomeService", "someMethod", 1234L, new ResultLimit(5, 6), "someMask&&"));
+            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), "someMask&&"));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?objectMask=someMask%26%26",
-            client.getFullUrl("SomeService", "someMethod", 1234L, null, "someMask&&"));
+            client.getFullUrl("SomeService", "someMethod", "1234", null, "someMask&&"));
         assertEquals("http://example.com/SomeService/Something.json",
             client.getFullUrl("SomeService", "getSomething", null, null, null));
         assertEquals("http://example.com/SomeService.json",

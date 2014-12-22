@@ -378,8 +378,17 @@ public class ClassWriter extends JavaWriter {
         // Now the service
         if (!type.meta.noservice) {
             if (type.meta.properties.containsKey("id")) {
-                beginMethod("Service", "asService", PUBLIC, TYPE_API_CLIENT, "client").
-                    emitStatement("return service(client, id)").endMethod().emitEmptyLine();
+                if (type.meta.properties.containsKey("globalIdentifier")) {
+                    beginMethod("Service", "asService", PUBLIC, TYPE_API_CLIENT, "client").
+                        beginControlFlow("if (id != null)").
+                            emitStatement("return service(client, id)").
+                        nextControlFlow("else").
+                            emitStatement("return service(client, globalIdentifier)").
+                        endControlFlow().endMethod().emitEmptyLine();
+                } else {
+                    beginMethod("Service", "asService", PUBLIC, TYPE_API_CLIENT, "client").
+                        emitStatement("return service(client, id)").endMethod().emitEmptyLine();
+                }
             }
             
             beginMethod("Service", "service", PUBLIC_STATIC, TYPE_API_CLIENT, "client").
@@ -388,8 +397,14 @@ public class ClassWriter extends JavaWriter {
 
             if (type.meta.properties.containsKey("id")) {
                 beginMethod("Service", "service", PUBLIC_STATIC, TYPE_API_CLIENT, "client", "Long", "id").
-                    emitStatement("return client.createService(Service.class, id)").
+                    emitStatement("return client.createService(Service.class, id == null ? null : id.toString())").
                     endMethod().emitEmptyLine();
+                if (type.meta.properties.containsKey("globalIdentifier")) {
+                    beginMethod("Service", "service", PUBLIC_STATIC, TYPE_API_CLIENT,
+                            "client", "String", "globalIdentifier").
+                        emitStatement("return client.createService(Service.class, globalIdentifier)").
+                        endMethod().emitEmptyLine();
+                }
             }
             
             emitService();

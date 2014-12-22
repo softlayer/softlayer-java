@@ -122,7 +122,7 @@ public class TestEntity extends Entity {
     }
 
     public static Service service(ApiClient client, Long id) {
-        return client.createService(Service.class, id);
+        return client.createService(Service.class, id == null ? null : id.toString());
     }
     
     @ApiService("SoftLayer_TestEntity")
