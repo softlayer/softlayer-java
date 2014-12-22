@@ -15,5 +15,5 @@ public interface ApiClient {
      * directly, but rather invoke the service method on the type class.
      * E.g. {@link com.softlayer.api.service.Account#service(ApiClient)}.
      */
-    public <S extends Service> S createService(Class<S> serviceClass, Long id);
+    public <S extends Service> S createService(Class<S> serviceClass, String id);
 }
