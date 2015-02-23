@@ -14,4 +14,7 @@ public interface Maskable {
 
     /** Set the mask to a string, formatted according to http://sldn.softlayer.com/article/Object-Masks */
     public void setMask(String mask);
+    
+    /** Removes the mask from the service */
+    public void clearMask();
 }
