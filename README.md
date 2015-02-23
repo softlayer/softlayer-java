@@ -31,7 +31,7 @@ To add the project you your Maven project, add the dependency:
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
@@ -265,4 +265,4 @@ fully qualified class name of your implementation on a single line in a file in 
 
 ## Copyright
 
-This software is Copyright (c) 2014 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
+This software is Copyright (c) 2015 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
