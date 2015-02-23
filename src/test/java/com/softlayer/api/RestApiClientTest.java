@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -427,5 +428,17 @@ public class RestApiClientTest {
         }).get();
         assertTrue(http.invokeAsyncCallbackCalled);
         assertTrue(successCalled.get());
+    }
+    
+    @Test
+    public void testNormalObjectMethodsOnService() {
+        RestApiClient client = new RestApiClient("http://example.com/");
+        TestEntity.Service service = TestEntity.service(client);
+        assertEquals("Service: SoftLayer_TestEntity", service.toString());
+        assertEquals("Service: SoftLayer_TestEntity with ID 5", TestEntity.service(client, 5L).toString());
+        assertTrue(Proxy.isProxyClass(service.getClass()));
+        assertEquals(service.hashCode(), service.hashCode());
+        assertTrue(service.equals(service));
+        
     }
 }

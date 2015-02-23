@@ -105,8 +105,8 @@ public class GsonJsonMarshallerFactoryTest {
         expected.put("baz", null);
         int offsetMinutes = TimeZone.getDefault().getOffset(obj.getDate().getTimeInMillis()) / 60000;
         String expectedTimeZone =
-    		(offsetMinutes < 0 ? '-' : '+') +
-    		String.format("%1$02d:%2$02d", Math.abs(offsetMinutes / 60), Math.abs(offsetMinutes % 60));
+            (offsetMinutes < 0 ? '-' : '+') +
+            String.format("%1$02d:%2$02d", Math.abs(offsetMinutes / 60), Math.abs(offsetMinutes % 60));
         expected.put("date", "1984-02-25T20:15:25" + expectedTimeZone);
         Map<String, Object> childMap = new HashMap<String, Object>();
         childMap.put("complexType", "SoftLayer_TestEntity");
