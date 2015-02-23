@@ -466,10 +466,25 @@ public class RestApiClient implements ApiClient {
                 return invokeService(method, args);
             } else if (ServiceAsync.class.isAssignableFrom(method.getDeclaringClass())) {
                 return invokeServiceAsync(method, args);
+            } else if (method.getDeclaringClass() == Object.class) {
+                return method.invoke(this, args);
             } else {
                 // Should not be possible
                 throw new RuntimeException("Unrecognized method: " + method);
             }
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            return Proxy.isProxyClass(obj.getClass()) && obj.hashCode() == hashCode();
+        }
+        
+        @Override
+        public String toString() {
+            if (id == null) {
+                return "Service: " + serviceClass.getAnnotation(ApiService.class).value();
+            }
+            return "Service: " + serviceClass.getAnnotation(ApiService.class).value() + " with ID " + id;
         }
     }
 }
