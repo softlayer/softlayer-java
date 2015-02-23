@@ -428,4 +428,21 @@ public class RestApiClientTest {
         assertTrue(http.invokeAsyncCallbackCalled);
         assertTrue(successCalled.get());
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMaskMustNotBeNull() {
+        RestApiClient client = new RestApiClient("http://example.com/");
+        TestEntity.Service service = TestEntity.service(client);
+        service.setMask((Mask) null);
+    }
+    
+    @Test
+    public void testMaskRemoval() {
+        RestApiClient client = new RestApiClient("http://example.com/");
+        TestEntity.Service service = TestEntity.service(client);
+        service.withMask().baz();
+        assertEquals("baz", service.withMask().toString());
+        service.clearMask();
+        assertEquals("", service.withMask().toString());
+    }
 }

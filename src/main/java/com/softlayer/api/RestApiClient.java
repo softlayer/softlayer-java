@@ -445,6 +445,13 @@ public class RestApiClient implements ApiClient {
                 mask = (Mask) args[0];
                 maskString = null;
                 return null;
+            } else if ("setMask".equals(method.getName()) && args != null
+                    && args.length == 1 && args[0] == null) {
+                throw new IllegalArgumentException("Cannot set null mask. Use clearMask to clear");
+            } else if ("clearMask".equals(method.getName())) {
+                mask = null;
+                maskString = null;
+                return null;
             } else if ("setResultLimit".equals(method.getName()) &&
                     method.getDeclaringClass() == ResultLimitable.class) {
                 resultLimit = (ResultLimit) args[0];
