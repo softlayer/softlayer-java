@@ -324,9 +324,9 @@ public class ClassWriter extends JavaWriter {
             
             // Instance is only required if it's not an account property
             if ("SoftLayer_Account".equals(type.meta.name)) {
-            	emitAnnotation(TYPE_API_METHOD);
+                emitAnnotation(TYPE_API_METHOD);
             } else {
-            	emitAnnotationWithAttrs(TYPE_API_METHOD, "instanceRequired", true);
+                emitAnnotationWithAttrs(TYPE_API_METHOD, "instanceRequired", true);
             }
         } else {
             // Otherwise, just a javadoc link
