@@ -44,6 +44,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             registerTypeAdapterFactory(new EntityTypeAdapterFactory()).
             registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
             registerTypeAdapter(BigInteger.class, new BigIntegerTypeAdapter()).
+            registerTypeAdapter(byte[].class, new ByteArrayTypeAdapter()).
             serializeNulls().
             create();
         
@@ -340,6 +341,27 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             //  BigInteger one.
             BigDecimal value = gson.fromJson(in, BigDecimal.class);
             return value == null ? null : value.toBigInteger();
+        }
+    }
+    
+    static class ByteArrayTypeAdapter extends TypeAdapter<byte[]> {
+
+        @Override
+        public void write(JsonWriter out, byte[] value) throws IOException {
+            if (value == null) {
+                out.nullValue();
+            } else {
+                out.value(Base64.encodeBytes(value));
+            }
+        }
+
+        @Override
+        public byte[] read(JsonReader in) throws IOException {
+            if (in.peek() == JsonToken.NULL) {
+                in.nextNull();
+                return null;
+            } 
+            return Base64.decode(in.nextString());
         }
     }
 }
