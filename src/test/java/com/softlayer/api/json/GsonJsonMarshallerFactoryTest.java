@@ -4,10 +4,12 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -163,5 +165,34 @@ public class GsonJsonMarshallerFactoryTest {
     public void testBigIntegerWithExponents() throws Exception {
         assertEquals(BigInteger.valueOf(123), fromJson(BigInteger.class, "123"));
         assertEquals(new BigInteger("18446744073710000000"), fromJson(BigInteger.class, "1.844674407371e+19"));
+    }
+    
+    @Test
+    public void testBase64ByteArrays() throws Exception {
+        // Read entire logo into byte array (sigh, have to be Java 6 compatible w/ no extra libs)
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        InputStream in = getClass().getResourceAsStream("sl-logo.png");
+        try {
+            byte[] buffer = new byte[1024];
+            int len = in.read(buffer);
+            while (len != -1) {
+                out.write(buffer, 0, len);
+                len = in.read(buffer);
+            }
+        } finally {
+            try {
+                in.close();
+            } catch (Exception e) { }
+        }
+        byte[] bytes = out.toByteArray();
+        // We know from testing that the base 64 encoded amount is 2232 chars long
+        String json = toJson(Collections.singletonMap("foo", bytes));
+        @SuppressWarnings("unchecked")
+        Map<String, String> map = fromJson(Map.class, json);
+        assertEquals(1, map.size());
+        assertEquals(2232, ((String) map.get("foo")).length());
+        Map<String, byte[]> byteMap = fromJson(new TypeToken<Map<String, byte[]>>(){}.getType(), json);
+        assertEquals(1, map.size());
+        assertTrue(Arrays.equals(bytes, byteMap.get("foo")));
     }
 }
