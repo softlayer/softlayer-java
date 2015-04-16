@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -194,5 +195,20 @@ public class GsonJsonMarshallerFactoryTest {
         Map<String, byte[]> byteMap = fromJson(new TypeToken<Map<String, byte[]>>(){}.getType(), json);
         assertEquals(1, map.size());
         assertTrue(Arrays.equals(bytes, byteMap.get("foo")));
+    }
+    
+    @Test
+    public void testReadSingleObjectAsArray() throws Exception {
+        Type listType = new TypeToken<List<TestEntity>>(){}.getType();
+        // First normal tests
+        List<TestEntity> entities = fromJson(listType, "[]");
+        assertEquals(0, entities.size());
+        entities = fromJson(listType, "[{\"complexType\":\"SoftLayer_TestEntity\",\"id\": 123}]");
+        assertEquals(1, entities.size());
+        assertEquals(123, entities.get(0).getId().intValue());
+        // Now without the array on the outside
+        entities = fromJson(listType, "{\"complexType\":\"SoftLayer_TestEntity\",\"id\": 123}");
+        assertEquals(1, entities.size());
+        assertEquals(123, entities.get(0).getId().intValue());
     }
 }
