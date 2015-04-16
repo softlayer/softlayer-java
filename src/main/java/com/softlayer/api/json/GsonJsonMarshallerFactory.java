@@ -7,14 +7,17 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -45,6 +48,9 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             registerTypeAdapter(GregorianCalendar.class, new GregorianCalendarTypeAdapter()).
             registerTypeAdapter(BigInteger.class, new BigIntegerTypeAdapter()).
             registerTypeAdapter(byte[].class, new ByteArrayTypeAdapter()).
+            // Sometimes, when a result limit is set to 1 value, REST sends it back as
+            //  a single object instead of an array
+            registerTypeAdapterFactory(new ListOrSingleObjectTypeFactory()).
             serializeNulls().
             create();
         
@@ -362,6 +368,52 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
                 return null;
             } 
             return Base64.decode(in.nextString());
+        }
+    }
+    
+    static class ListOrSingleObjectTypeFactory implements TypeAdapterFactory {
+
+        @Override
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+            if (!List.class.isAssignableFrom(type.getRawType()) || !(type.getType() instanceof ParameterizedType)) {
+                return null;
+            }
+            Type[] typeArgs = ((ParameterizedType) type.getType()).getActualTypeArguments();
+            if (typeArgs.length != 1 || !(typeArgs[0] instanceof Class)) {
+                return null;
+            }
+            return new ListOrSingleObjectTypeAdapter(gson.getDelegateAdapter(this, type),
+                gson.getAdapter((Class) typeArgs[0]));
+        }
+    }
+    
+    static class ListOrSingleObjectTypeAdapter<T> extends TypeAdapter<List<T>> {
+
+        private final TypeAdapter<List<T>> listDelegate;
+        private final TypeAdapter<T> instanceDelegate;
+        
+        public ListOrSingleObjectTypeAdapter(TypeAdapter<List<T>> listDelegate, TypeAdapter<T> instanceDelegate) {
+            this.listDelegate = listDelegate;
+            this.instanceDelegate = instanceDelegate;
+        }
+
+        @Override
+        public void write(JsonWriter out, List<T> value) throws IOException {
+            // Writing always delegates to list
+            listDelegate.write(out, value);
+        }
+
+        @Override
+        public List<T> read(JsonReader in) throws IOException {
+            // We only take over if it's the beginning of an object, otherwise delegate
+            if (in.peek() == JsonToken.BEGIN_OBJECT) {
+                // Send back a mutable list of 1
+                List<T> result = new ArrayList<T>(1);
+                result.add(instanceDelegate.read(in));
+                return result;
+            }
+            return listDelegate.read(in);
         }
     }
 }
