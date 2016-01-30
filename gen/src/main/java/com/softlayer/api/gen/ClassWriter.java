@@ -377,8 +377,14 @@ public class ClassWriter extends JavaWriter {
         
         // Now the service
         if (!type.meta.noservice) {
-            if (type.meta.properties.containsKey("id")) {
-                if (type.meta.properties.containsKey("globalIdentifier")) {
+
+            Boolean containsId = type.meta.properties.containsKey("id")
+                    || type.baseMeta.properties.containsKey("id");
+            Boolean containsGlobalIdentifier = type.meta.properties.containsKey("globalIdentifier")
+                    || type.baseMeta.properties.containsKey("globalIdentifier");
+
+            if (containsId) {
+                if (containsGlobalIdentifier) {
                     beginMethod("Service", "asService", PUBLIC, TYPE_API_CLIENT, "client").
                         beginControlFlow("if (id != null)").
                             emitStatement("return service(client, id)").
@@ -395,11 +401,11 @@ public class ClassWriter extends JavaWriter {
                 emitStatement("return client.createService(Service.class, null)").
                 endMethod().emitEmptyLine();
 
-            if (type.meta.properties.containsKey("id")) {
+            if (containsId) {
                 beginMethod("Service", "service", PUBLIC_STATIC, TYPE_API_CLIENT, "client", "Long", "id").
                     emitStatement("return client.createService(Service.class, id == null ? null : id.toString())").
                     endMethod().emitEmptyLine();
-                if (type.meta.properties.containsKey("globalIdentifier")) {
+                if (containsGlobalIdentifier) {
                     beginMethod("Service", "service", PUBLIC_STATIC, TYPE_API_CLIENT,
                             "client", "String", "globalIdentifier").
                         emitStatement("return client.createService(Service.class, globalIdentifier)").
