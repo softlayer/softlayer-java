@@ -59,13 +59,13 @@ public class ClassWriter extends JavaWriter {
         }
     }
     
-    public static void emitType(File baseDir, TypeClass type) throws IOException {
+    public static void emitType(File baseDir, TypeClass type, Meta meta) throws IOException {
         File fileDir = new File(baseDir, type.packageName.replace('.', '/'));
         fileDir.mkdirs();
         Writer writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream(new File(fileDir, type.className + ".java")), "UTF-8"));
         try {
-            new ClassWriter(writer, type).emitType();
+            new ClassWriter(writer, type, meta).emitType();
         } finally {
             try { writer.close(); } catch (Exception e) { }
         }
@@ -86,10 +86,12 @@ public class ClassWriter extends JavaWriter {
     }
     
     public final TypeClass type;
+    private final Meta meta;
     
-    public ClassWriter(Writer out, TypeClass type) {
+    public ClassWriter(Writer out, TypeClass type, Meta meta) {
         super(out);
         this.type = type;
+        this.meta = meta;
         setIndent("    ");
     }
 
@@ -378,10 +380,20 @@ public class ClassWriter extends JavaWriter {
         // Now the service
         if (!type.meta.noservice) {
 
-            Boolean containsId = type.meta.properties.containsKey("id")
-                    || type.baseMeta.properties.containsKey("id");
-            Boolean containsGlobalIdentifier = type.meta.properties.containsKey("globalIdentifier")
-                    || type.baseMeta.properties.containsKey("globalIdentifier");
+            // Check if the type or any of its' parent types have id or globalIdentifier properties
+            Boolean containsId = false;
+            Boolean containsGlobalIdentifier = false;
+            Meta.Type searchType = type.meta;
+            while (searchType != null) {
+                if (searchType.properties.containsKey("id")) {
+                    containsId = true;
+                    if (searchType.properties.containsKey("globalIdentifier")) {
+                        containsGlobalIdentifier = true;
+                    }
+                    break;
+                }
+                searchType = meta.types.get(searchType.base);
+            }
 
             if (containsId) {
                 if (containsGlobalIdentifier) {
@@ -415,7 +427,7 @@ public class ClassWriter extends JavaWriter {
             
             emitService();
         }
-        
+
         emitMask().endType();
         return this;
     }
