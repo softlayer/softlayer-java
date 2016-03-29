@@ -35,7 +35,7 @@ public class Generator {
         List<TypeClass> classes = new ArrayList<TypeClass>(meta.types.size());
         for (Meta.Type type : meta.types.values()) {
             TypeClass typeClass = new MetaConverter(BASE_PKG, meta, type).buildTypeClass();
-            ClassWriter.emitType(dir, typeClass);
+            ClassWriter.emitType(dir, typeClass, meta);
             classes.add(typeClass);
         }
         ClassWriter.emitPackageInfo(dir, classes);
