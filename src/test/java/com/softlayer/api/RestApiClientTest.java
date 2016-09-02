@@ -46,29 +46,29 @@ public class RestApiClientTest {
     public void testGetFullUrl() {
         RestApiClient client = new RestApiClient("http://example.com/");
         assertEquals("http://example.com/SomeService/someMethod.json",
-            client.getFullUrl("SomeService", "someMethod", null, null, null));
+            client.getFullUrl("SomeService", "someMethod", null, null, null, null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json",
-            client.getFullUrl("SomeService", "someMethod", "1234", null, null));
+            client.getFullUrl("SomeService", "someMethod", "1234", null, null, null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?resultLimit=5,6",
-            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), null));
+            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), null, null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?resultLimit=5,6&objectMask=someMask%26%26",
-            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), "someMask&&"));
+            client.getFullUrl("SomeService", "someMethod", "1234", new ResultLimit(5, 6), "someMask&&", null));
         assertEquals("http://example.com/SomeService/1234/someMethod.json?objectMask=someMask%26%26",
-            client.getFullUrl("SomeService", "someMethod", "1234", null, "someMask&&"));
+            client.getFullUrl("SomeService", "someMethod", "1234", null, "someMask&&", null));
         assertEquals("http://example.com/SomeService/Something.json",
-            client.getFullUrl("SomeService", "getSomething", null, null, null));
+            client.getFullUrl("SomeService", "getSomething", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "getObject", null, null, null));
+            client.getFullUrl("SomeService", "getObject", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "deleteObject", null, null, null));
+            client.getFullUrl("SomeService", "deleteObject", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "createObject", null, null, null));
+            client.getFullUrl("SomeService", "createObject", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "createObjects", null, null, null));
+            client.getFullUrl("SomeService", "createObjects", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "editObject", null, null, null));
+            client.getFullUrl("SomeService", "editObject", null, null, null, null));
         assertEquals("http://example.com/SomeService.json",
-            client.getFullUrl("SomeService", "editObjects", null, null, null));
+            client.getFullUrl("SomeService", "editObjects", null, null, null, null));
     }
     
     private String withOutputCaptured(Callable<?> closure) throws Exception {
@@ -311,7 +311,8 @@ public class RestApiClientTest {
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
-        service.withMask().foo().child().date();
+        service.withMask().foo();
+        service.withMask().child().date();
         service.withMask().child().baz();
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
@@ -329,7 +330,8 @@ public class RestApiClientTest {
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         TestEntity.Mask mask = new TestEntity.Mask();
-        mask.foo().child().date();
+        mask.foo();
+        mask.child().date();
         mask.child().baz();
         service.setMask(mask);
         assertEquals("some response", service.doSomethingStatic(123L, entity));

@@ -35,6 +35,11 @@ public class ClassWriter extends JavaWriter {
     public static final String TYPE_SERVICE = "com.softlayer.api.Service";
     public static final String TYPE_SERVICE_ASYNC = "com.softlayer.api.ServiceAsync";
     public static final String TYPE_TYPE = "com.softlayer.api.Type";
+    public static final String TYPE_FILTERABLE_BOOLEAN_PROPERTY = "com.softlayer.api.Property.BooleanProperty";
+    public static final String TYPE_FILTERABLE_BYTE_ARRAY_PROPERTY = "com.softlayer.api.Property.ByteArrayProperty";
+    public static final String TYPE_FILTERABLE_DATE_TIME_PROPERTY = "com.softlayer.api.Property.DateTimeProperty";
+    public static final String TYPE_FILTERABLE_NUMBER_PROPERTY = "com.softlayer.api.Property.NumberProperty";
+    public static final String TYPE_FILTERABLE_STRING_PROPERTY = "com.softlayer.api.Property.StringProperty";
 
     private static final Set<Modifier> PROTECTED = EnumSet.of(Modifier.PROTECTED);
     private static final Set<Modifier> PUBLIC = EnumSet.of(Modifier.PUBLIC);
@@ -107,8 +112,8 @@ public class ClassWriter extends JavaWriter {
     }
     
     public ClassWriter emitMask() throws IOException {
-        
-        String baseMask = type.baseJavaType != null ? type.baseJavaType + ".Mask" : TYPE_MASK;        
+
+        String baseMask = type.baseJavaType != null ? type.baseJavaType + ".Mask" : TYPE_MASK;
         beginType("Mask", "class", PUBLIC_STATIC, baseMask).emitEmptyLine();
 
         for (TypeClass.Property property : type.properties) {
@@ -118,13 +123,36 @@ public class ClassWriter extends JavaWriter {
                         compressType(property.nonArrayJavaType + ".Mask")).
                     endMethod().emitEmptyLine();
             } else {
-                beginMethod("Mask", property.name, PUBLIC).
-                    emitStatement("withLocalProperty(%s)", stringLiteral(property.name)).
-                    emitStatement("return this").
-                    endMethod().emitEmptyLine();
+                String method;
+                String returnType;
+
+                if ("Boolean".equals(property.nonArrayJavaType)) {
+                    method = "withBooleanProperty";
+                    returnType = TYPE_FILTERABLE_BOOLEAN_PROPERTY;
+                } else if ("byte[]".equals(property.nonArrayJavaType)) {
+                    method = "withByteArrayProperty";
+                    returnType = TYPE_FILTERABLE_BYTE_ARRAY_PROPERTY;
+                } else if ("java.util.GregorianCalendar".equals(property.nonArrayJavaType)) {
+                    method = "withDateTimeProperty";
+                    returnType = TYPE_FILTERABLE_DATE_TIME_PROPERTY;
+                } else if ("java.math.BigDecimal".equals(property.nonArrayJavaType)
+                        || "java.math.BigInteger".equals(property.nonArrayJavaType)
+                        || "Long".equals(property.nonArrayJavaType)) {
+                    method = "withNumberProperty";
+                    returnType = TYPE_FILTERABLE_NUMBER_PROPERTY;
+                } else if ("String".equals(property.nonArrayJavaType)) {
+                    method = "withStringProperty";
+                    returnType = TYPE_FILTERABLE_STRING_PROPERTY;
+                } else {
+                    throw new IllegalArgumentException("Unrecognized primitive type: " + property.nonArrayJavaType);
+                }
+                beginMethod(returnType, property.name, PUBLIC)
+                        .emitStatement("return " + method + "(%s)", stringLiteral(property.name))
+                        .endMethod()
+                        .emitEmptyLine();
             }
         }
-        
+
         endType().emitEmptyLine();
         return this;
     }
@@ -212,8 +240,9 @@ public class ClassWriter extends JavaWriter {
         beginMethod("ServiceAsync", "asAsync", PUBLIC).endMethod();
         beginMethod("Mask", "withNewMask", PUBLIC).endMethod();
         beginMethod("Mask", "withMask", PUBLIC).endMethod();
-        beginMethod("void", "setMask", PUBLIC, "Mask", "mask").endMethod().emitEmptyLine();
-        
+        beginMethod("Mask", "withNewFilter", PUBLIC).endMethod();
+        beginMethod("Mask", "withFilter", PUBLIC).endMethod().emitEmptyLine();
+
         for (TypeClass.Method method : type.methods) {
             emitServiceMethod(method, false);
         }
