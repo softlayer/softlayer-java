@@ -114,12 +114,12 @@ public class ClassWriter extends JavaWriter {
         for (TypeClass.Property property : type.properties) {
             if (property.nonArrayJavaType.startsWith("com.")) {
                 beginMethod(property.nonArrayJavaType + ".Mask", property.name, PUBLIC).
-                    emitStatement("return withSubMask(%s, %s.class)", stringLiteral(property.name),
+                    emitStatement("return withSubMask(%s, %s.class)", stringLiteral(property.meta.name),
                         compressType(property.nonArrayJavaType + ".Mask")).
                     endMethod().emitEmptyLine();
             } else {
                 beginMethod("Mask", property.name, PUBLIC).
-                    emitStatement("withLocalProperty(%s)", stringLiteral(property.name)).
+                    emitStatement("withLocalProperty(%s)", stringLiteral(property.meta.name)).
                     emitStatement("return this").
                     endMethod().emitEmptyLine();
             }
