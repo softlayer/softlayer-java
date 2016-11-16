@@ -22,6 +22,6 @@ public interface HttpClient extends Closeable {
     /** Make asynchronous HTTP invocation. All errors (inability to connect or API errors) are in the future. */
     public Future<HttpResponse> invokeAsync(Callable<?> setupBody);
     
-    /** Callback-form of {@link #invokeAsync()} */
+    /** Callback-form of {@link #invokeAsync(Callable)} */
     public Future<?> invokeAsync(Callable<?> setupBody, ResponseHandler<HttpResponse> callback);
 }

@@ -18,6 +18,7 @@ public class MetaConverter {
         keywordReplacements = new HashMap<String, String>(2);
         keywordReplacements.put("package", "pkg");
         keywordReplacements.put("private", "priv");
+        keywordReplacements.put("native", "nat");
         keywords = new HashSet<String>(Arrays.asList(new String[] {
             "abstract", "continue", "for", "new", "switch",
             "assert", "default", "goto", "package", "synchronized",
@@ -57,7 +58,7 @@ public class MetaConverter {
         if (invalidClassNames.contains(name)) {
             name = pieces[pieces.length - 2] + name;
         }
-        return name;
+        return getValidJavaIdentifier(name);
     }
     
     public String getMethodOrPropertyName(String className, String name) {
@@ -66,7 +67,7 @@ public class MetaConverter {
             name = Character.toLowerCase(className.charAt(0)) + className.substring(1) +
                 Character.toUpperCase(name.charAt(0)) + name.substring(1);
         }
-        return name;
+        return getValidJavaIdentifier(name);
     }
 
     public String getPackageName(String typeName) {
@@ -79,9 +80,25 @@ public class MetaConverter {
         for (int i = 0; i < pieces.length - 1; i++) {
             String piece = pieces[i].toLowerCase();
             String replacement = keywordReplacements.get(piece);
-            pkg.append('.').append(replacement != null ? replacement : piece);
+            piece = replacement != null ? replacement : piece;
+            pkg.append('.').append(getValidJavaIdentifier(piece));
         }
         return pkg.toString();
+    }
+
+    /**
+     * Provides a valid java identifier from the given name.
+     * Currently only checks for a valid start character and adds 'z'
+     * if the name has an invalid character at the start.
+     *
+     * @param name The identifier name to use.
+     * @return The new name after validating.
+     */
+    public String getValidJavaIdentifier(String name) {
+        if (!Character.isJavaIdentifierStart(name.charAt(0))) {
+            name = "z" + name;
+        }
+        return name;
     }
 
     public TypeClass buildTypeClass() {
