@@ -31,7 +31,7 @@ To add the project you your Maven project, add the dependency:
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.2.2</version>
+  <version>0.2.3</version>
 </dependency>
 ```
 
@@ -230,6 +230,13 @@ The services are not guaranteed to be thread-safe on their own, so it is difficu
 style, the `ResponseHandlerWithHeaders` can be used instead of `ResponseHandler`. But the safest way is to only use a
 single service per thread.
 
+### Differences from the API
+
+Due to restrictions on identifiers in Java, some properties, methods, classes, and packages will be named differently
+from the naming used by the API. For example, an API property that starts with a number will be prepended with 'z'.
+[Java keywords](https://docs.oracle.com/javase/specs/jls/se8/html/jls-3.html#jls-3.9) that appear in identifiers may
+also be replaced.
+
 ## Building
 
 This project is intentionally provided without all of the service code. Normal Maven `install` and `package` commands
@@ -265,4 +272,4 @@ fully qualified class name of your implementation on a single line in a file in 
 
 ## Copyright
 
-This software is Copyright (c) 2015 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
+This software is Copyright (c) 2016 The SoftLayer Developer Network. See the bundled LICENSE file for more information.

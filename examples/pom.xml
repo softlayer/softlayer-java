@@ -5,7 +5,7 @@
   <artifactId>softlayer-api-client-examples</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.2</version>
+  <version>0.2.3</version>
   <name>softlayer-api-client-examples</name>
   <url>http://sldn.softlayer.com</url>
   <licenses>

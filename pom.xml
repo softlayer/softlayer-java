@@ -4,7 +4,7 @@
   <artifactId>softlayer-api-client</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.2</version>
+  <version>0.2.3</version>
   <name>SoftLayer API Client for Java</name>
   <description>API client for accessing the SoftLayer API</description>
   <url>http://sldn.softlayer.com</url>
@@ -17,9 +17,9 @@
   </licenses>
   <developers>
     <developer>
-      <id>cretz</id>
-      <name>Chad Retz</name>
-      <email>cretz@softlayer.com</email>
+      <id>camporter</id>
+      <name>Cameron Porter</name>
+      <email>cmporter@softlayer.com</email>
       <organization>SoftLayer</organization>
       <organizationUrl>http://softlayer.com</organizationUrl>
       <roles>
@@ -33,7 +33,7 @@
     <connection>scm:git:git@github.com:softlayer/softlayer-java.git</connection>
     <developerConnection>scm:git:git@github.com:softlayer/softlayer-java.git</developerConnection>
     <url>git@github.com:softlayer/softlayer-java.git</url>
-    <tag>0.2.2</tag>
+    <tag>0.2.3</tag>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
