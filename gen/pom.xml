@@ -5,7 +5,7 @@
   <artifactId>softlayer-api-client-gen</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.3</version>
+  <version>0.2.4</version>
   <name>softlayer-api-client-gen</name>
   <url>http://sldn.softlayer.com</url>
   <licenses>
