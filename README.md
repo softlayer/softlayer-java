@@ -1,6 +1,8 @@
 # SoftLayer API Client for Java
 
 [![Build Status](https://travis-ci.org/softlayer/softlayer-java.svg)](https://travis-ci.org/softlayer/softlayer-java)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client)
+[![Javadocs](https://www.javadoc.io/badge/com.softlayer.api/softlayer-api-client.svg)](https://www.javadoc.io/doc/com.softlayer.api/softlayer-api-client)
 
 ## Introduction
 
@@ -263,7 +265,7 @@ name of your implementation on a single line in a file in the JAR at
 
 ### JSON Marshalling
 
-The default JSON marshaller that is used is [Gson](https://code.google.com/p/google-gson/). In order to create your own,
+The default JSON marshaller that is used is [Gson](https://github.com/google/gson). In order to create your own,
 alternative implementation you must implement `com.softlayer.api.json.JsonMarshallerFactyory`. Once implemented, this
 can be explicitly set on the `RestApiClient` by calling `setJsonMarshallerFactory`. Instead of setting the factory
 manually, you can also leverage Java's `ServiceLoader` mechanism to have it used by default. This involves adding the
