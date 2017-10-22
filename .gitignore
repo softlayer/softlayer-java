@@ -1,6 +1,8 @@
 /.classpath
 /.project
 /.settings
+/.idea
+*.iml
 /target
 /src/main/java/com/softlayer/api/service
 /gen/target
