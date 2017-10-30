@@ -41,6 +41,18 @@ public class RestApiClient implements ApiClient {
     static {
         HEADERS = Collections.singletonMap("SoftLayer-Include-Types", Collections.singletonList("true"));
     }
+
+    /**
+     * A list of service methods that do not have to be added to the REST URL.
+     * createObjects is supposed to work, but does not.
+     */
+    private static final List<String> IMPLICIT_SERVICE_METHODS = Arrays.asList(
+            "getObject",
+            "deleteObject",
+            "createObject",
+            "editObject",
+            "editObjects"
+    );
     
     private final String baseUrl;
     private HttpClientFactory httpClientFactory;
@@ -135,7 +147,18 @@ public class RestApiClient implements ApiClient {
             return "GET";
         }
     }
-    
+
+    /**
+     * Get the full REST URL required to make a request.
+     *
+     * @param serviceName The name of the API service.
+     * @param methodName The name of the method on the service to call.
+     * @param id The identifier of the object to make a call to,
+     *           otherwise null if not making a request to a specific object.
+     * @param resultLimit The number of results to limit the request to.
+     * @param maskString The mask, in string form, to use on the request.
+     * @return String
+     */
     protected String getFullUrl(String serviceName, String methodName, String id,
             ResultLimit resultLimit, String maskString) {
         StringBuilder url = new StringBuilder(baseUrl + serviceName);
@@ -146,9 +169,7 @@ public class RestApiClient implements ApiClient {
         // Some method names are not included, others can have the "get" stripped
         if (methodName.startsWith("get") && !"getObject".equals(methodName)) {
             url.append('/').append(methodName.substring(3));
-        } else if (!"getObject".equals(methodName) && !"deleteObject".equals(methodName) &&
-                !"createObject".equals(methodName) && !"createObjects".equals(methodName) &&
-                !"editObject".equals(methodName) && !"editObjects".equals(methodName)) {
+        } else if (!IMPLICIT_SERVICE_METHODS.contains(methodName)) {
             url.append('/').append(methodName);
         }
         url.append(".json");
