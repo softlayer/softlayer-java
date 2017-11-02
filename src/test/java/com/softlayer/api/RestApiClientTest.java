@@ -63,7 +63,7 @@ public class RestApiClientTest {
             client.getFullUrl("SomeService", "deleteObject", null, null, null));
         assertEquals("http://example.com/SomeService.json",
             client.getFullUrl("SomeService", "createObject", null, null, null));
-        assertEquals("http://example.com/SomeService.json",
+        assertEquals("http://example.com/SomeService/createObjects.json",
             client.getFullUrl("SomeService", "createObjects", null, null, null));
         assertEquals("http://example.com/SomeService.json",
             client.getFullUrl("SomeService", "editObject", null, null, null));
