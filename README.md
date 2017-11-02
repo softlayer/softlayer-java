@@ -266,7 +266,7 @@ name of your implementation on a single line in a file in the JAR at
 ### JSON Marshalling
 
 The default JSON marshaller that is used is [Gson](https://github.com/google/gson). In order to create your own,
-alternative implementation you must implement `com.softlayer.api.json.JsonMarshallerFactyory`. Once implemented, this
+alternative implementation you must implement `com.softlayer.api.json.JsonMarshallerFactory`. Once implemented, this
 can be explicitly set on the `RestApiClient` by calling `setJsonMarshallerFactory`. Instead of setting the factory
 manually, you can also leverage Java's `ServiceLoader` mechanism to have it used by default. This involves adding the
 fully qualified class name of your implementation on a single line in a file in the JAR at
