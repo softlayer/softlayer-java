@@ -17,8 +17,8 @@ public class CreateSecurityGroup extends Example {
 
         // Now call the security group service to create it
         System.out.println("Make call to create security group");
-        SecurityGroup sg_out = service.createObject(sg);
-        System.out.format("Created security group with name = %s\n", sg_out.getName());
+        SecurityGroup sgOut = service.createObject(sg);
+        System.out.format("Created security group with name = %s\n", sgOut.getName());
     }
 
     public static void main(String[] args) throws Exception {
