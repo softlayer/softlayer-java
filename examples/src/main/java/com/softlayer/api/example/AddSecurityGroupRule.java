@@ -31,7 +31,7 @@ public class AddSecurityGroupRule extends Example {
         rule.setDirection("ingress");
         rule.setProtocol("udp");
 
-        List<Rule> newRules = new ArrayList<Rule>();
+        List<Rule> newRules = new ArrayList<>();
         newRules.add(rule);
 
         // Now add the rule(s) to the security group

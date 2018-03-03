@@ -85,39 +85,38 @@ public class RestApiClientTest {
     
     @Test
     public void testLogRequest() throws Exception {
-        assertEquals("Running VERB on URL with no body\n", withOutputCaptured(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
+        assertEquals(
+            "Running VERB on URL with no body\n",
+            withOutputCaptured(() -> {
                 new RestApiClient().logRequest("VERB", "URL", new Object[0]);
                 return null;
-            }
-        }));
-        assertEquals("Running VERB on URL with body: {\"parameters\":[{\"key\":\"value\"}]}\n",
-            withOutputCaptured(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    new RestApiClient().logRequest("VERB", "URL",
-                        new Object[] { Collections.singletonMap("key", "value") });
-                    return null;
-                }
-            }));
+            })
+        );
+        assertEquals(
+            "Running VERB on URL with body: {\"parameters\":[{\"key\":\"value\"}]}\n",
+            withOutputCaptured(() -> {
+                new RestApiClient().logRequest("VERB", "URL",
+                    new Object[]{Collections.singletonMap("key", "value")});
+                return null;
+            })
+        );
     }
     
     @Test
     public void testLogResponse() throws Exception {
-        assertEquals("Got 123 on URL with body: some body\n", withOutputCaptured(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
+        assertEquals(
+            "Got 123 on URL with body: some body\n",
+            withOutputCaptured(() -> {
                 new RestApiClient().logResponse("URL", 123, "some body");
                 return null;
-            }
-        }));
+            })
+        );
     }
     
     @Test(expected = IllegalStateException.class)
     public void testFailedIfCallingNonStaticWithoutId() {
         FakeHttpClientFactory http = new FakeHttpClientFactory(123,
-            Collections.<String, List<String>>emptyMap(), "some response");
+            Collections.emptyMap(), "some response");
         RestApiClient client = new RestApiClient("http://example.com/");
         client.setHttpClientFactory(http);
         TestEntity.service(client).doSomethingNonStatic(new GregorianCalendar());
@@ -126,7 +125,7 @@ public class RestApiClientTest {
     @Test(expected = IllegalStateException.class)
     public void testFailedIfCallingNonStaticAsyncWithoutId() {
         FakeHttpClientFactory http = new FakeHttpClientFactory(123,
-            Collections.<String, List<String>>emptyMap(), "some response");
+            Collections.emptyMap(), "some response");
         RestApiClient client = new RestApiClient("http://example.com/");
         client.setHttpClientFactory(http);
         TestEntity.service(client).asAsync().doSomethingNonStatic(new GregorianCalendar());
@@ -135,7 +134,7 @@ public class RestApiClientTest {
     @Test
     public void testSuccess() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
+            Collections.emptyMap(), "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
         TestEntity entity = new TestEntity();
@@ -154,9 +153,10 @@ public class RestApiClientTest {
     @Test
     public void testBadRequestFailure() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(ApiException.BadRequest.STATUS,
-            Collections.<String, List<String>>emptyMap(),
+            Collections.emptyMap(),
             "{\"error\": \"some error\", \"code\": \"some code\"}");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
@@ -172,11 +172,14 @@ public class RestApiClientTest {
     @Test
     public void testAsyncFutureSuccess() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
+
         assertEquals("some response", TestEntity.service(client).asAsync().doSomethingStatic(123L, entity).get());
         assertEquals("user", ((HttpBasicAuthCredentials) http.credentials).username);
         assertEquals("key", ((HttpBasicAuthCredentials) http.credentials).apiKey);
@@ -191,10 +194,12 @@ public class RestApiClientTest {
     @Test
     public void testAsyncFutureFailure() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(ApiException.BadRequest.STATUS,
-            Collections.<String, List<String>>emptyMap(),
+            Collections.emptyMap(),
             "{\"error\": \"some error\", \"code\": \"some code\"}");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         try {
@@ -209,9 +214,11 @@ public class RestApiClientTest {
     @Test
     public void testAsyncCallbackSuccess() throws Exception {
         final FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         final AtomicBoolean successCalled = new AtomicBoolean();
@@ -227,6 +234,7 @@ public class RestApiClientTest {
                 successCalled.set(true);
             }
         }).get();
+
         assertEquals("user", ((HttpBasicAuthCredentials) http.credentials).username);
         assertEquals("key", ((HttpBasicAuthCredentials) http.credentials).apiKey);
         assertEquals("GET", http.method);
@@ -241,10 +249,12 @@ public class RestApiClientTest {
     @Test
     public void testAsyncCallbackFailure() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(ApiException.BadRequest.STATUS,
-            Collections.<String, List<String>>emptyMap(),
+            Collections.emptyMap(),
             "{\"error\": \"some error\", \"code\": \"some code\"}");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         final AtomicBoolean errorCalled = new AtomicBoolean();
@@ -267,19 +277,19 @@ public class RestApiClientTest {
     @Test
     public void testCallWithLog() throws Exception {
         final FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        String output = withOutputCaptured(new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key").
-                    withLoggingEnabled();
+            Collections.emptyMap(), "\"some response\"");
+        String output = withOutputCaptured(() -> {
+                RestApiClient client = new RestApiClient("http://example.com/")
+                    .withCredentials("user", "key")
+                    .withLoggingEnabled();
                 client.setHttpClientFactory(http);
+
                 TestEntity entity = new TestEntity();
                 entity.setFoo("blah");
                 TestEntity.service(client).doSomethingStatic(123L, entity);
                 return null;
-            }
         });
+
         assertTrue(http.invokeSyncCalled);
         assertEquals(
             "Running GET on http://example.com/SoftLayer_TestEntity/doSomethingStatic.json with body: "
@@ -292,9 +302,11 @@ public class RestApiClientTest {
     @Test
     public void testDifferentMethodName() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "[]");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "[]");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         assertEquals(Collections.emptyList(), TestEntity.service(client).fakeName());
         assertEquals("http://example.com/SoftLayer_TestEntity/actualName.json", http.fullUrl);
         assertNull(http.outStream);
@@ -305,14 +317,17 @@ public class RestApiClientTest {
     @Test
     public void testWithMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().foo().child().date();
         service.withMask().child().baz();
+
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
@@ -322,9 +337,11 @@ public class RestApiClientTest {
     @Test
     public void testSetObjectMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
@@ -332,6 +349,7 @@ public class RestApiClientTest {
         mask.foo().child().date();
         mask.child().baz();
         service.setMask(mask);
+
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
@@ -341,13 +359,16 @@ public class RestApiClientTest {
     @Test
     public void testSetStringMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         service.setMask("yay-a-mask");
+
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=yay-a-mask", http.fullUrl);
@@ -357,13 +378,16 @@ public class RestApiClientTest {
     @Test
     public void testWithResultLimit() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.<String, List<String>>emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+            Collections.emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         service.setResultLimit(new ResultLimit(1, 2));
+
         assertEquals(1, service.getResultLimit().offset);
         assertEquals(2, service.getResultLimit().limit);
         assertEquals("some response", service.doSomethingStatic(123L, entity));
@@ -377,11 +401,14 @@ public class RestApiClientTest {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
             Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
+
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertTrue(http.invokeSyncCalled);
         assertEquals(234, service.getLastResponseTotalItemCount().intValue());
@@ -392,11 +419,14 @@ public class RestApiClientTest {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
             Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
+
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.ServiceAsync service = TestEntity.service(client).asAsync();
+
         assertEquals("some response", service.doSomethingStatic(123L, entity).get());
         assertTrue(http.invokeAsyncFutureCalled);
         assertEquals(234, service.getLastResponseTotalItemCount().intValue());
@@ -407,7 +437,8 @@ public class RestApiClientTest {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
             Collections.singletonMap("SoftLayer-Total-Items", Collections.singletonList("234")),
             "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
+        RestApiClient client = new RestApiClient("http://example.com/")
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");

@@ -1,6 +1,5 @@
 package com.softlayer.api.example;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.Set;
@@ -28,12 +27,9 @@ public class PaginationAsyncCallback extends Example {
         ((ThreadPooledHttpClientFactory) HttpClientFactory.getDefault()).setThreadPool(threadPool);
 
         // A thread-safe set is needed to hold the resulting packages ordered by name
-        final NavigableSet<Package> packages = new ConcurrentSkipListSet<Package>(new Comparator<Package>() {
-            @Override
-            public int compare(Package pkg1, Package pkg2) {
-                return pkg1.getName().compareToIgnoreCase(pkg2.getName());
-            }
-        });
+        final NavigableSet<Package> packages = new ConcurrentSkipListSet<>(
+                (pkg1, pkg2) -> pkg1.getName().compareToIgnoreCase(pkg2.getName())
+        );
 
         // To know how many calls have to be made to get all items, an initial call is required to get the
         //  first set of data AND the total count

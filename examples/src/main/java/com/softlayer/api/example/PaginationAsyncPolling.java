@@ -1,7 +1,6 @@
 package com.softlayer.api.example;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
@@ -27,7 +26,7 @@ public class PaginationAsyncPolling extends Example {
         ((ThreadPooledHttpClientFactory) HttpClientFactory.getDefault()).setThreadPool(threadPool);
 
         // Asynchronous responses are held so they can be waited on once all are submitted
-        List<PackageResponseWrapper> responses = new ArrayList<PackageResponseWrapper>();
+        List<PackageResponseWrapper> responses = new ArrayList<>();
 
         // To know how many calls have to be made to get all items, an initial call is required to get the
         //  first set of data AND the total count
@@ -53,12 +52,9 @@ public class PaginationAsyncPolling extends Example {
         threadPool.shutdown();
 
         // A set is needed to hold the resulting packages ordered by name
-        final NavigableSet<Package> packages = new TreeSet<Package>(new Comparator<Package>() {
-            @Override
-            public int compare(Package pkg1, Package pkg2) {
-                return pkg1.getName().compareToIgnoreCase(pkg2.getName());
-            }
-        });
+        final NavigableSet<Package> packages = new TreeSet<>(
+                (pkg1, pkg2) -> pkg1.getName().compareToIgnoreCase(pkg2.getName())
+        );
 
         // Unlike the callback approach, this approach guarantees they come in the order requested since a blocking
         //  call to get() is in the request order

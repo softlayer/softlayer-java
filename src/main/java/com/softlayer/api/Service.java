@@ -4,5 +4,5 @@ package com.softlayer.api;
 public interface Service extends Maskable, ResultLimitable {
     
     /** Get an async version of this service */
-    public ServiceAsync asAsync();
+    ServiceAsync asAsync();
 }

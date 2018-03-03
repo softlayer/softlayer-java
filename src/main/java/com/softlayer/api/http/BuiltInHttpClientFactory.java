@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +15,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.xml.bind.DatatypeConverter;
 
 import com.softlayer.api.ResponseHandler;
 
@@ -98,8 +95,12 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
         final Map<String, List<String>> headers;
         HttpURLConnection connection;
         
-        public BuiltInHttpClient(HttpCredentials credentials, String method,
-                String fullUrl, Map<String, List<String>> headers) {
+        public BuiltInHttpClient(
+            HttpCredentials credentials,
+            String method,
+            String fullUrl,
+            Map<String, List<String>> headers
+        ) {
             // We only support basic auth
             if (credentials != null && !(credentials instanceof HttpBasicAuthCredentials)) {
                 throw new UnsupportedOperationException("Only basic auth is supported, not " + credentials.getClass());
@@ -138,12 +139,11 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
             //  fairly fast and safe.
             openConnection();
             if (credentials != null) {
-                // XXX: Using JAXB datatype converter here because it's the only base 64 I trust to be around...
-                //  should we embed a base 64 encoder in here?
-                HttpBasicAuthCredentials authCredentials = (HttpBasicAuthCredentials) credentials;
                 try {
-                    connection.addRequestProperty("Authorization", "Basic " + new String(DatatypeConverter.
-                            printBase64Binary((authCredentials.username + ':' + authCredentials.apiKey).getBytes("UTF-8"))));
+                    connection.addRequestProperty(
+                            "Authorization",
+                            credentials.getHeader()
+                    );
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
@@ -153,14 +153,8 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
                     connection.addRequestProperty(headerEntry.getKey(), headerValue);
                 }
             }
-            if (!"GET".equals(method)) {
-                try {
-                    connection.setRequestMethod(method);
-                } catch (ProtocolException e) {
-                    throw new RuntimeException(e);
-                }
-            }
             try {
+                connection.setRequestMethod(method);
                 setupBody.call();
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -170,31 +164,21 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
 
         @Override
         public Future<HttpResponse> invokeAsync(final Callable<?> setupBody) {
-            return getThreadPool().submit(new Callable<HttpResponse>() {
-                @Override
-                public HttpResponse call() throws Exception {
-                    // We let any exception here properly bubble out of the future
-                    HttpResponse response = invokeSync(setupBody);
-                    return response;
-                }
-            });
+            return getThreadPool().submit(() -> invokeSync(setupBody));
         }
 
         @Override
         public Future<?> invokeAsync(final Callable<?> setupBody, final ResponseHandler<HttpResponse> callback) {
-            return getThreadPool().submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    HttpResponse resp;
-                    try {
-                        resp = invokeSync(setupBody);
-                    } catch (Exception e) {
-                        callback.onError(e);
-                        return null;
-                    }
-                    callback.onSuccess(resp);
+            return getThreadPool().submit(() -> {
+                HttpResponse response;
+                try {
+                    response = invokeSync(setupBody);
+                } catch (Exception e) {
+                    callback.onError(e);
                     return null;
                 }
+                callback.onSuccess(response);
+                return null;
             });
         }
 
