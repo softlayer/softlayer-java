@@ -15,6 +15,7 @@ import java.util.Set;
 public class Main {
 
     protected static final String METADATA_URL = "https://api.softlayer.com/metadata/v3.1";
+    protected static final String DEFAULT_SOURCE_PATH = "../src/main/java";
     
     public static final String USAGE = 
         "Arguments:\n\n" +
@@ -43,7 +44,7 @@ public class Main {
                 return;
             }
             String dirString = getArg("--src", argList);
-            dir = new File(dirString != null ? dirString : "../src/main/java");
+            dir = new File(dirString != null ? dirString : DEFAULT_SOURCE_PATH);
             String urlString = getArg("--url", argList);
             url = new URL(urlString != null ? urlString : METADATA_URL);
             whitelist = getRestriction(getArg("--whitelist", argList));

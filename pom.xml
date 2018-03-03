@@ -141,7 +141,8 @@
       <!-- Generate services -->
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <version>3.0.1</version>
+        <!-- https://issues.apache.org/jira/browse/MINVOKER-224 prevents an upgrade to 3.0.1 -->
+        <version>2.0.0</version>
         <executions>
           <execution>
             <id>generate-services</id>
