@@ -19,8 +19,7 @@ public class HttpBasicAuthCredentials implements HttpCredentials {
      *
      * @return String
      */
-    public String getHeader()
-    {
+    public String getHeader() {
         String authPair = username + ':' + apiKey;
         return "Basic " + Base64.getEncoder().encodeToString(authPair.getBytes());
     }
