@@ -72,14 +72,13 @@ public class MetaConverter {
             typeName = typeName.substring(10);
         }
         String[] pieces = typeName.split("_");
-        Arrays.stream(pieces)
-                .limit(pieces.length - 1) // Skip the last, it's the class name
-                .map(String::toLowerCase)
-                .map(piece -> {
-                    String replacement = keywordReplacements.get(piece);
-                    return replacement != null ? replacement : piece;
-                })
-                .forEach(piece -> pkg.append('.').append(getValidJavaIdentifier(piece)));
+        // Skip the last one, it's the class name
+        for (int i = 0; i < pieces.length - 1; i++) {
+            String piece = pieces[i].toLowerCase();
+            String replacement = keywordReplacements.get(piece);
+            piece = replacement != null ? replacement : piece;
+            pkg.append('.').append(getValidJavaIdentifier(piece));
+        }
         return pkg.toString();
     }
 

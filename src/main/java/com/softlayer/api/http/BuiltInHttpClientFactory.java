@@ -139,14 +139,10 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
             //  fairly fast and safe.
             openConnection();
             if (credentials != null) {
-                try {
-                    connection.addRequestProperty(
-                            "Authorization",
-                            credentials.getHeader()
-                    );
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                connection.addRequestProperty(
+                    "Authorization",
+                    credentials.getHeader()
+                );
             }
             for (Map.Entry<String, List<String>> headerEntry : headers.entrySet()) {
                 for (String headerValue : headerEntry.getValue()) {
