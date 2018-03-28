@@ -25,6 +25,6 @@ public abstract class Type {
      */
     public void setUnknownProperties(Map<String, Object> unknownProperties) {
         this.unknownProperties = Collections.unmodifiableMap(
-            new HashMap<String, Object>(unknownProperties));
+            new HashMap<>(unknownProperties));
     }
 }

@@ -16,8 +16,17 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+/**
+ * Represents the structure of the metadata provided by the API.
+ */
 public class Meta {
-    
+
+    /**
+     * Reads a JSON object from the given metadata URL and generates a new Meta object containing all types.
+     *
+     * @param url The API metadata URL.
+     * @return Meta
+     */
     public static Meta fromUrl(URL url) {
         InputStream stream = null;
         try {
@@ -33,8 +42,10 @@ public class Meta {
                         return PropertyForm.valueOf(in.nextString().toUpperCase());
                     }
                 }).create();
-            Map<String, Type> types = gson.fromJson(new InputStreamReader(stream),
-                    new TypeToken<Map<String, Type>>(){ }.getType());
+            Map<String, Type> types = gson.fromJson(
+                    new InputStreamReader(stream),
+                    new TypeToken<Map<String, Type>>(){ }.getType()
+            );
             return new Meta(types);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -44,14 +55,19 @@ public class Meta {
             }
         }
     }
-    
+
     public final Map<String, Type> types;
-    
+
     public Meta(Map<String, Type> types) {
         this.types = types;
     }
 
+    /**
+     * Representation of a type in the metadata API.
+     */
     public static class Type {
+        public static final String BASE_TYPE_NAME = "SoftLayer_Entity";
+
         public String name;
         public String base;
         public String typeDoc;
@@ -60,7 +76,10 @@ public class Meta {
         public Map<String, Method> methods = Collections.emptyMap();
         public boolean noservice;
     }
-    
+
+    /**
+     * Representation of a property in the metadata API.
+     */
     public static class Property {
         public String name;
         public String type;
@@ -69,12 +88,15 @@ public class Meta {
         public String doc;
     }
     
-    public static enum PropertyForm {
+    public enum PropertyForm {
         LOCAL,
         RELATIONAL,
         COUNT
     }
-    
+
+    /**
+     * A representation of a method in the metadata API.
+     */
     public static class Method {
         public String name;
         public String type;
@@ -88,7 +110,10 @@ public class Meta {
         public boolean maskable;
         public List<Parameter> parameters = Collections.emptyList();
     }
-    
+
+    /**
+     * A representation of a parameter in the metadata API.
+     */
     public static class Parameter {
         public String name;
         public String type;

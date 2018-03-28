@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import com.squareup.javawriter.JavaWriter;
 public class ClassWriter extends JavaWriter {
 
     public static final String SLDN_URL_BASE_PATH = "http://sldn.softlayer.com/reference/";
-    
+
     public static final String TYPE_API_CLIENT = "com.softlayer.api.ApiClient";
     public static final String TYPE_API_METHOD = "com.softlayer.api.annotation.ApiMethod";
     public static final String TYPE_API_PROPERTY = "com.softlayer.api.annotation.ApiProperty";
@@ -63,7 +64,7 @@ public class ClassWriter extends JavaWriter {
         File fileDir = new File(baseDir, type.packageName.replace('.', '/'));
         fileDir.mkdirs();
         Writer writer = new BufferedWriter(new OutputStreamWriter(
-            new FileOutputStream(new File(fileDir, type.className + ".java")), "UTF-8"));
+            new FileOutputStream(new File(fileDir, type.className + ".java")), StandardCharsets.UTF_8));
         try {
             new ClassWriter(writer, type, meta).emitType();
         } finally {
@@ -97,7 +98,7 @@ public class ClassWriter extends JavaWriter {
 
     public ClassWriter emitAnnotationWithAttrs(String annotationType, Object... attributes) throws IOException {
         int i = 0;
-        Map<String, Object> attrMap = new HashMap<String, Object>(attributes.length / 2 + 1);
+        Map<String, Object> attrMap = new HashMap<>(attributes.length / 2 + 1);
         while (i < attributes.length) {
             String key = attributes[i++].toString();
             attrMap.put(key, attributes[i++]);
@@ -134,7 +135,7 @@ public class ClassWriter extends JavaWriter {
             emitJavadoc(property.meta.doc.replace("\n", "<br />\n"));
         }
         
-        Map<String, Object> params = new HashMap<String, Object>(2);
+        Map<String, Object> params = new HashMap<>(2);
         if (!property.name.equals(property.meta.name)) {
             params.put("value", stringLiteral(property.meta.name));
         }
@@ -267,7 +268,7 @@ public class ClassWriter extends JavaWriter {
                 "/" + method.meta.name + "\">" + type.meta.name + "::" + method.meta.name + "</a>";
             emitJavadoc(javadoc);
             
-            Map<String, Object> params = new HashMap<String, Object>(2);
+            Map<String, Object> params = new HashMap<>(2);
             if (!method.name.equals(method.meta.name)) {
                 params.put("value", stringLiteral(method.meta.name));
             }
@@ -433,8 +434,8 @@ public class ClassWriter extends JavaWriter {
     }
     
     public ClassWriter emitTypeImports() throws IOException {
-        Map<String, String> imports = new HashMap<String, String>(type.imports);
-        
+        Map<String, String> imports = new HashMap<>(type.imports);
+
         imports.remove("Mask");
         imports.remove(type.className);
         imports.put("ApiType", TYPE_API_TYPE);

@@ -8,12 +8,12 @@ public interface ApiClient {
      *
      * @return This instance
      */
-    public ApiClient withCredentials(String username, String apiKey);
+    ApiClient withCredentials(String username, String apiKey);
     
     /**
      * Get a service for the given sets of classes and optional ID. It is not recommended to call this
      * directly, but rather invoke the service method on the type class.
      * E.g. {@link com.softlayer.api.service.Account#service(ApiClient)}.
      */
-    public <S extends Service> S createService(Class<S> serviceClass, String id);
+    <S extends Service> S createService(Class<S> serviceClass, String id);
 }

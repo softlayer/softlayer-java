@@ -80,6 +80,7 @@ public class GsonJsonMarshallerFactoryTest {
         assertEquals("bad value", obj.getUnknownProperties().get("notApiProperty"));
         assertEquals("child string", obj.getChild().getFoo());
         assertNull(obj.getChild().getBaz());
+        assertEquals(0, obj.getChild().getUnknownProperties().size());
         assertFalse(obj.getChild().isBazSpecified());
         assertEquals(2, obj.getMoreChildren().size());
         assertEquals("child 1", obj.getMoreChildren().get(0).getFoo());
@@ -102,7 +103,7 @@ public class GsonJsonMarshallerFactoryTest {
         obj.getMoreChildren().get(1).setFoo("child 2");
         
         Map<String, Object> actual = fromJson(new TypeToken<Map<String, Object>>() { }.getType(), toJson(obj));
-        Map<String, Object> expected = new HashMap<String, Object>(6);
+        Map<String, Object> expected = new HashMap<>(6);
         expected.put("complexType", "SoftLayer_TestEntity");
         expected.put("bar", "some string");
         expected.put("baz", null);
@@ -111,14 +112,14 @@ public class GsonJsonMarshallerFactoryTest {
             (offsetMinutes < 0 ? '-' : '+') +
             String.format("%1$02d:%2$02d", Math.abs(offsetMinutes / 60), Math.abs(offsetMinutes % 60));
         expected.put("date", "1984-02-25T20:15:25" + expectedTimeZone);
-        Map<String, Object> childMap = new HashMap<String, Object>();
+        Map<String, Object> childMap = new HashMap<>();
         childMap.put("complexType", "SoftLayer_TestEntity");
         childMap.put("bar", "child string");
         expected.put("child", childMap);
-        Map<String, Object> child1Map = new HashMap<String, Object>();
+        Map<String, Object> child1Map = new HashMap<>();
         child1Map.put("complexType", "SoftLayer_TestEntity");
         child1Map.put("bar", "child 1");
-        Map<String, Object> child2Map = new HashMap<String, Object>();
+        Map<String, Object> child2Map = new HashMap<>();
         child2Map.put("complexType", "SoftLayer_TestEntity");
         child2Map.put("bar", "child 2");
         expected.put("moreChildren", Arrays.asList(child1Map, child2Map));
@@ -128,7 +129,14 @@ public class GsonJsonMarshallerFactoryTest {
     @Test
     public void testReadBothDateFormats() throws Exception {
         String regular = "\"1984-02-25T20:15:25-06:00\"";
-        Calendar expected = new GregorianCalendar(1984, Calendar.FEBRUARY, 25, 20, 15, 25);
+        Calendar expected = new GregorianCalendar(
+            1984,
+            Calendar.FEBRUARY,
+            25,
+            20,
+            15,
+            25
+        );
         expected.setTimeZone(TimeZone.getTimeZone("GMT-06:00"));
         assertEquals(expected.getTimeInMillis(),
             fromJson(GregorianCalendar.class, regular).getTimeInMillis());

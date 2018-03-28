@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import java.net.HttpURLConnection;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -19,8 +18,12 @@ public class BuiltInHttpClientFactoryTest {
     @Test
     public void testGetHttpClientWithoutBasicAuth() {
         try {
-            new BuiltInHttpClientFactory().getHttpClient(new HttpCredentials() { }, "GET",
-                "http://example.com", Collections.<String, List<String>>emptyMap());
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpCredentials() { },
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            );
             fail();
         } catch (UnsupportedOperationException e) {
             assertTrue(e.getMessage().contains("basic auth"));
@@ -29,12 +32,9 @@ public class BuiltInHttpClientFactoryTest {
     
     @Test
     public void testGetThreadPoolDefaultsToDaemonThreads() throws Exception {
-        boolean daemon = new BuiltInHttpClientFactory().getThreadPool().submit(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                return Thread.currentThread().isDaemon();
-            }
-        }).get();
+        boolean daemon = new BuiltInHttpClientFactory().getThreadPool().submit(
+            () -> Thread.currentThread().isDaemon()
+        ).get();
         assertTrue(daemon);
     }
 
@@ -60,9 +60,14 @@ public class BuiltInHttpClientFactoryTest {
     
     @Test
     public void testInvokeSyncSetsUpProperly() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "NOTGET", "http://example.com",
-            Collections.singletonMap("header", Collections.singletonList("some header value"))));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "NOTGET",
+                "http://example.com",
+                Collections.singletonMap("header", Collections.singletonList("some header value"))
+            )
+        );
         client.connection = mock(HttpURLConnection.class);
         // Skip opening connection
         doNothing().when(client).openConnection();
@@ -82,9 +87,14 @@ public class BuiltInHttpClientFactoryTest {
     
     @Test
     public void testInvokeAsyncFutureResult() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "GET", "http://example.com",
-            Collections.<String, List<String>>emptyMap()));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            )
+        );
         Callable<?> callable = mock(Callable.class);
         doReturn(client).when(client).invokeSync(callable);
         assertEquals(client, client.invokeAsync(callable).get());
@@ -94,9 +104,14 @@ public class BuiltInHttpClientFactoryTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testInvokeAsyncCallbackSuccess() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "GET", "http://example.com",
-            Collections.<String, List<String>>emptyMap()));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            )
+        );
         Callable<?> callable = mock(Callable.class);
         doReturn(client).when(client).invokeSync(callable);
         ResponseHandler<HttpResponse> handler = mock(ResponseHandler.class);
@@ -109,9 +124,14 @@ public class BuiltInHttpClientFactoryTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testInvokeAsyncCallbackError() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "GET", "http://example.com",
-            Collections.<String, List<String>>emptyMap()));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            )
+        );
         Callable<?> callable = mock(Callable.class);
         doThrow(RuntimeException.class).when(client).invokeSync(callable);
         ResponseHandler<HttpResponse> handler = mock(ResponseHandler.class);
@@ -123,9 +143,14 @@ public class BuiltInHttpClientFactoryTest {
 
     @Test
     public void testGetInputStreamOnSuccess() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "GET", "http://example.com",
-            Collections.<String, List<String>>emptyMap()));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            )
+        );
         client.connection = mock(HttpURLConnection.class);
         when(client.connection.getResponseCode()).thenReturn(250);
         client.getInputStream();
@@ -135,9 +160,14 @@ public class BuiltInHttpClientFactoryTest {
     
     @Test
     public void testGetErrorStreamOnFailure() throws Exception {
-        BuiltInHttpClient client = spy(new BuiltInHttpClientFactory().getHttpClient(
-            new HttpBasicAuthCredentials("some user", "some key"), "GET", "http://example.com",
-            Collections.<String, List<String>>emptyMap()));
+        BuiltInHttpClient client = spy(
+            new BuiltInHttpClientFactory().getHttpClient(
+                new HttpBasicAuthCredentials("some user", "some key"),
+                "GET",
+                "http://example.com",
+                Collections.emptyMap()
+            )
+        );
         client.connection = mock(HttpURLConnection.class);
         when(client.connection.getResponseCode()).thenReturn(450);
         client.getInputStream();

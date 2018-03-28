@@ -7,7 +7,7 @@
 ## Introduction
 
 This library provides a JVM client for the [SoftLayer API](http://sldn.softlayer.com/article/SoftLayer-API-Overview). It
-has code generated and compiled via Maven. The client can work with any Java 6+ runtime. It uses the code generation
+has code generated and compiled via Maven. The client can work with any Java 8+ runtime. It uses the code generation
 project in `gen/` to generate the service and type related code. Although likely to work in resource-constrained
 environments (i.e. Android, J2ME, etc), using this is not recommended; Use the
 [REST](http://sldn.softlayer.com/article/REST) API instead.

@@ -9,11 +9,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -29,7 +25,9 @@ import com.softlayer.api.http.HttpResponse;
 import com.softlayer.api.json.JsonMarshallerFactory;
 import com.softlayer.api.service.Entity;
 
-/** Implementation of API client for http://sldn.softlayer.com/article/REST */
+/**
+ * Implementation of API client for http://sldn.softlayer.com/article/REST
+ */
 public class RestApiClient implements ApiClient {
 
     public static final String BASE_URL = "https://api.softlayer.com/rest/v3.1/";
@@ -53,17 +51,22 @@ public class RestApiClient implements ApiClient {
             "editObject",
             "editObjects"
     );
-    
+
     private final String baseUrl;
     private HttpClientFactory httpClientFactory;
     private JsonMarshallerFactory jsonMarshallerFactory;
     private boolean loggingEnabled = false;
     private HttpBasicAuthCredentials credentials;
-    
+
     public RestApiClient() {
         this(BASE_URL);
     }
-    
+
+    /**
+     * Create a Rest client with a custom URL.
+     *
+     * @param baseUrl The custom URL the REST client will use.
+     */
     public RestApiClient(String baseUrl) {
         // Add trailing slash if not present
         if (!baseUrl.endsWith("/")) {
@@ -71,7 +74,7 @@ public class RestApiClient implements ApiClient {
         }
         this.baseUrl = baseUrl;
     }
-    
+
     public String getBaseUrl() {
         return baseUrl;
     }
@@ -137,14 +140,17 @@ public class RestApiClient implements ApiClient {
     }
     
     protected String getHttpMethodFromMethodName(String methodName) {
-        if ("deleteObject".equals(methodName)) {
-            return "DELETE";
-        } else if ("createObject".equals(methodName) || "createObjects".equals(methodName)) {
-            return "POST";
-        } else if ("editObject".equals(methodName) || "editObjects".equals(methodName)) {
-            return "PUT";
-        } else {
-            return "GET";
+        switch (methodName) {
+            case "deleteObject":
+                return "DELETE";
+            case "createObject":
+            case "createObjects":
+                return "POST";
+            case "editObject":
+            case "editObjects":
+                return "PUT";
+            default:
+                return "GET";
         }
     }
 
@@ -172,6 +178,7 @@ public class RestApiClient implements ApiClient {
         } else if (!IMPLICIT_SERVICE_METHODS.contains(methodName)) {
             url.append('/').append(methodName);
         }
+
         url.append(".json");
         if (resultLimit != null) {
             url.append("?resultLimit=").append(resultLimit.offset).append(',').append(resultLimit.limit);
@@ -211,7 +218,7 @@ public class RestApiClient implements ApiClient {
     @SuppressWarnings("unchecked")
     public <S extends Service> S createService(Class<S> serviceClass, String id) {
         return (S) Proxy.newProxyInstance(getClass().getClassLoader(),
-                new Class<?>[] { serviceClass }, new ServiceProxy<S>(serviceClass, id));
+                new Class<?>[] { serviceClass }, new ServiceProxy<>(serviceClass, id));
     }
 
     class ServiceProxy<S extends Service> implements InvocationHandler {
@@ -310,12 +317,9 @@ public class RestApiClient implements ApiClient {
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
 
             // Invoke with response
-            HttpResponse response = client.invokeSync(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    logRequestAndWriteBody(client, httpMethod, url, args);
-                    return null;
-                }
+            HttpResponse response = client.invokeSync(() -> {
+                logRequestAndWriteBody(client, httpMethod, url, args);
+                return null;
             });
             
             return logAndHandleResponse(response, url, method.getGenericReturnType());
@@ -347,13 +351,10 @@ public class RestApiClient implements ApiClient {
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
                     methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
-            
-            Callable<Void> setupBody = new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    logRequestAndWriteBody(client, httpMethod, url, trimmedArgs);
-                    return null;
-                }
+
+            Callable<Void> setupBody = () -> {
+                logRequestAndWriteBody(client, httpMethod, url, trimmedArgs);
+                return null;
             };
             
             if (lastParamCallback) {
@@ -439,8 +440,9 @@ public class RestApiClient implements ApiClient {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             boolean noParams = args == null || args.length == 0;
+
             if ("asAsync".equals(method.getName()) && noParams) {
-                ServiceProxy<S> asyncProxy = new ServiceProxy<S>(serviceClass, id);
+                ServiceProxy<S> asyncProxy = new ServiceProxy<>(serviceClass, id);
                 asyncProxy.mask = mask;
                 asyncProxy.maskString = maskString;
                 asyncProxy.resultLimit = resultLimit;

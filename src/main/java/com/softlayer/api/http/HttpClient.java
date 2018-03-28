@@ -14,14 +14,14 @@ import com.softlayer.api.ResponseHandler;
 public interface HttpClient extends Closeable {
 
     /** Stream to write body contents to (if at all). When called, callers are expected to close it. */
-    public OutputStream getBodyStream();
+    OutputStream getBodyStream();
     
     /** Make synchronous HTTP invocation. Throws if unable to connect. Errors from the API are returned normally. */
-    public HttpResponse invokeSync(Callable<?> setupBody);
+    HttpResponse invokeSync(Callable<?> setupBody);
     
     /** Make asynchronous HTTP invocation. All errors (inability to connect or API errors) are in the future. */
-    public Future<HttpResponse> invokeAsync(Callable<?> setupBody);
+    Future<HttpResponse> invokeAsync(Callable<?> setupBody);
     
     /** Callback-form of {@link #invokeAsync(Callable)} */
-    public Future<?> invokeAsync(Callable<?> setupBody, ResponseHandler<HttpResponse> callback);
+    Future<?> invokeAsync(Callable<?> setupBody, ResponseHandler<HttpResponse> callback);
 }

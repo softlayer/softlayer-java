@@ -1,12 +1,8 @@
 package com.softlayer.api.gen;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 public class MetaConverter {
     
@@ -15,11 +11,11 @@ public class MetaConverter {
     protected static final Set<String> invalidClassNames;
     
     static {
-        keywordReplacements = new HashMap<String, String>(2);
+        keywordReplacements = new HashMap<>(2);
         keywordReplacements.put("package", "pkg");
         keywordReplacements.put("private", "priv");
         keywordReplacements.put("native", "nat");
-        keywords = new HashSet<String>(Arrays.asList(new String[] {
+        keywords = new HashSet<>(Arrays.asList(
             "abstract", "continue", "for", "new", "switch",
             "assert", "default", "goto", "package", "synchronized",
             "boolean", "do", "if", "private", "this",
@@ -30,13 +26,13 @@ public class MetaConverter {
             "char", "final", "interface", "static", "void",
             "class", "finally", "long", "strictfp", "volatile",
             "const", "float", "native", "super", "while"
-        }));
-        invalidClassNames = new HashSet<String>(Arrays.asList(new String[] {
+        ));
+        invalidClassNames = new HashSet<>(Arrays.asList(
             "Service"
-        }));
+        ));
     }
     
-    protected final Map<String, String> imports = new HashMap<String, String>();
+    protected final Map<String, String> imports = new HashMap<>();
     protected final String basePackageName;
     protected final Meta meta;
     protected final Meta.Type type;
@@ -46,10 +42,10 @@ public class MetaConverter {
         this.basePackageName = basePackageName;
         this.meta = meta;
         this.type = type;
-        className = getClassName(type.name);
+        this.className = getClassName(type.name);
     }
     
-    public String getClassName(String typeName) {
+    protected String getClassName(String typeName) {
         String[] pieces = typeName.split("_");
         // We want just the last, but add an extra piece if invalid. We don't go recursive
         //  or check top-level when going back because it's a rare occurrence and we're safe
@@ -108,7 +104,7 @@ public class MetaConverter {
         Meta.Type baseMeta = null;
         String baseService = null;
         Meta.Type baseServiceMeta = null;
-        if (type.base != null && !"SoftLayer_Entity".equals(type.name)) {
+        if (type.base != null && !Meta.Type.BASE_TYPE_NAME.equals(type.name)) {
             String baseClassName = getClassName(type.base);
             base = getPackageName(type.base) + '.' + baseClassName;
             imports.put(baseClassName, base);
@@ -132,7 +128,7 @@ public class MetaConverter {
     }
     
     public List<TypeClass.Property> getProperties() {
-        List<TypeClass.Property> properties = new ArrayList<TypeClass.Property>(type.properties.size());
+        List<TypeClass.Property> properties = new ArrayList<>(type.properties.size());
         for (Meta.Property property : type.properties.values()) {
             String javaType = getJavaType(property.type, property.typeArray);
             if (javaType != null) {
@@ -148,12 +144,12 @@ public class MetaConverter {
     }
     
     public List<TypeClass.Method> getMethods(Meta.Type baseMeta) {
-        List<TypeClass.Method> methods = new ArrayList<TypeClass.Method>(type.methods.size());
+        List<TypeClass.Method> methods = new ArrayList<>(type.methods.size());
         for (Meta.Method method : type.methods.values()) {
             String javaType = getJavaType(method.type, method.typeArray);
             if (javaType != null) {
                 boolean allParametersValid = true;
-                List<TypeClass.Parameter> parameters = new ArrayList<TypeClass.Parameter>(method.parameters.size());
+                List<TypeClass.Parameter> parameters = new ArrayList<>(method.parameters.size());
                 for (Meta.Parameter parameter : method.parameters) {
                     String paramJavaType = getJavaType(parameter.type, parameter.typeArray);
                     if (paramJavaType == null) {
@@ -206,33 +202,51 @@ public class MetaConverter {
     public String getJavaType(String typeName, boolean array) {
     
         String javaType;
+
         // Attempt primitives first
-        if ("base64Binary".equals(typeName)) {
-            javaType = "byte[]";
-        } else if ("boolean".equals(typeName)) {
-            javaType = "Boolean";
-        } else if ("dateTime".equals(typeName)) {
-            javaType = "java.util.GregorianCalendar";
-            imports.put("GregorianCalendar", javaType);
-        } else if ("decimal".equals(typeName) || "float".equals(typeName)) {
-            javaType = "java.math.BigDecimal";
-            imports.put("BigDecimal", javaType);
-        } else if ("enum".equals(typeName) || "json".equals(typeName) || "string".equals(typeName)) {
-            javaType = "String";
-        } else if ("int".equals(typeName) || "integer".equals(typeName) ||
-                "unsignedInt".equals(typeName) || "unsignedLong".equals(typeName)) {
-            javaType = "Long";
-        } else if ("nonNegativeInteger".equals(typeName)) {
-            javaType = "java.math.BigInteger";
-            imports.put("BigInteger", javaType);
-        } else if ("void".equals(typeName)) {
-            javaType = "Void";
-        } else if (!meta.types.containsKey(typeName)) {
-            return null;
-        } else {
-            String className = getClassName(typeName);
-            javaType = getPackageName(typeName) + '.' + className;
-            imports.put(className, javaType);
+        switch (typeName) {
+            case "base64Binary":
+                javaType = "byte[]";
+                break;
+            case "boolean":
+                javaType = "Boolean";
+                break;
+            case "dateTime":
+                javaType = GregorianCalendar.class.getName();
+                imports.put("GregorianCalendar", javaType);
+                break;
+            case "decimal":
+            case "float":
+                javaType = BigDecimal.class.getName();
+                imports.put("BigDecimal", javaType);
+                break;
+            case "enum":
+            case "json":
+            case "string":
+                javaType = "String";
+                break;
+            case "int":
+            case "integer":
+            case "unsignedInt":
+            case "unsignedLong":
+                javaType = "Long";
+                break;
+            case "nonNegativeInteger":
+                javaType = BigInteger.class.getName();
+                imports.put("BigInteger", javaType);
+                break;
+            case "void":
+                javaType = "Void";
+                break;
+            default:
+                if (!meta.types.containsKey(typeName)) {
+                    return null;
+                } else {
+                    String className = getClassName(typeName);
+                    javaType = getPackageName(typeName) + '.' + className;
+                    imports.put(className, javaType);
+                }
+                break;
         }
         if (array) {
             imports.put("List", "java.util.List");

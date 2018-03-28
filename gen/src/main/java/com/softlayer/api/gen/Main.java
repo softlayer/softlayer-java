@@ -13,6 +13,9 @@ import java.util.Set;
 
 /** Entry point for the code generator */
 public class Main {
+
+    protected static final String METADATA_URL = "https://api.softlayer.com/metadata/v3.1";
+    protected static final String DEFAULT_SOURCE_PATH = "../src/main/java";
     
     public static final String USAGE = 
         "Arguments:\n\n" +
@@ -35,15 +38,15 @@ public class Main {
         Restriction whitelist;
         Restriction blacklist;
         try {
-            List<String> argList = new ArrayList<String>(Arrays.asList(args));
+            List<String> argList = Arrays.asList(args);
             if (argList.contains("--help")) {
                 System.out.println(USAGE);
                 return;
             }
             String dirString = getArg("--src", argList);
-            dir = new File(dirString != null ? dirString : "../src/main/java");
+            dir = new File(dirString != null ? dirString : DEFAULT_SOURCE_PATH);
             String urlString = getArg("--url", argList);
-            url = new URL(urlString != null ? urlString : "https://api.softlayer.com/metadata/v3.1");
+            url = new URL(urlString != null ? urlString : METADATA_URL);
             whitelist = getRestriction(getArg("--whitelist", argList));
             blacklist = getRestriction(getArg("--blacklist", argList));
             if (whitelist != null && blacklist != null) {
@@ -83,17 +86,13 @@ public class Main {
                     line = line.trim();
                     if (line.contains("::")) {
                         String pieces[] = line.split("::", 2);
-                        Set<String> methods = restriction.methods.get(pieces[0]);
-                        if (methods == null) {
-                            methods = new HashSet<String>();
-                            restriction.methods.put(pieces[0], methods);
-                        }
+                        Set<String> methods = restriction.methods.computeIfAbsent(pieces[0], key -> new HashSet<>());
                         methods.add(pieces[1]);
                     } else if (line.contains(".")) {
                         String pieces[] = line.split(".", 2);
                         Set<String> properties = restriction.properties.get(pieces[0]);
                         if (properties == null) {
-                            properties = new HashSet<String>();
+                            properties = new HashSet<>();
                             restriction.methods.put(pieces[0], properties);
                         }
                         properties.add(pieces[1]);

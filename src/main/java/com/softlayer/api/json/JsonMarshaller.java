@@ -11,8 +11,8 @@ import java.lang.reflect.Type;
 public interface JsonMarshaller {
     
     /** Convert the given object to JSON on the stream. The output stream is closed by this marshaller */
-    public void toJson(Object object, OutputStream out);
+    void toJson(Object object, OutputStream out);
     
     /** Convert the JSON stream to the given type. The input stream is closed by this marshaller */
-    public <T> T fromJson(Type type, InputStream in);
+    <T> T fromJson(Type type, InputStream in);
 }

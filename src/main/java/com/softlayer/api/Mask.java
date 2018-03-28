@@ -7,8 +7,8 @@ import java.util.Set;
 
 /** Object mask parameter. See http://sldn.softlayer.com/article/Object-Masks */
 public class Mask {
-    private final Set<String> localProperties = new HashSet<String>();
-    private final Map<String, Mask> subMasks = new HashMap<String, Mask>();
+    private final Set<String> localProperties = new HashSet<>();
+    private final Map<String, Mask> subMasks = new HashMap<>();
     
     /** Clear out all previously masked objects and local properties */
     public void clear() {

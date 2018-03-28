@@ -15,6 +15,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +56,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             create();
         
         ApiTypes types = Entity.class.getPackage().getAnnotation(ApiTypes.class);
-        typeClasses = new HashMap<String, Class<? extends Entity>>(types.value().length);
+        typeClasses = new HashMap<>(types.value().length);
         for (Class<? extends Entity> clazz : types.value()) {
             typeClasses.put(clazz.getAnnotation(ApiType.class).value(), clazz);
         }
@@ -93,7 +94,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
                 return null;
             }
             // Obtain all ApiProperty fields and make them accessible...
-            Map<String, EntityJsonField> fields = new HashMap<String, EntityJsonField>();
+            Map<String, EntityJsonField> fields = new HashMap<>();
             loadFields(typeClass, fields);
             return (TypeAdapter<T>) new EntityTypeAdapter((Class<? extends Entity>) typeClass, fields);
         }
@@ -208,12 +209,10 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             Entity entity;
             try {
                 entity = typeClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-            Map<String, Object> unknownProperties = new HashMap<String, Object>();
+            Map<String, Object> unknownProperties = new HashMap<>();
             while (in.hasNext()) {
                 String propertyName = in.nextName();
                 EntityJsonField field = fields.get(propertyName);
@@ -245,23 +244,16 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
         //  can just remove/add the colon as necessary. This is a better solution than using
         //  JAXB libraries.
         // Ref: http://stackoverflow.com/questions/2201925/converting-iso-8601-compliant-string-to-java-util-date
-        
-        final ThreadLocal<DateFormat> secondFormat = new ThreadLocal<DateFormat>() {
-            @Override
-            protected DateFormat initialValue() {
-                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-            }
-        };
+        final ThreadLocal<DateFormat> secondFormat = ThreadLocal.withInitial(
+                () -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+        );
         
         // Some times come back with fractions of a second all the way down to 6 digits.
         //  Luckily we can just use the presence of a decimal point as a discriminator between
         //  this format and the one above.
-        final ThreadLocal<DateFormat> subSecondFormat = new ThreadLocal<DateFormat>() {
-            @Override
-            protected DateFormat initialValue() {
-                return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            }
-        };
+        final ThreadLocal<DateFormat> subSecondFormat = ThreadLocal.withInitial(
+                () -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+        );
 
         @Override
         public void write(JsonWriter out, GregorianCalendar value) throws IOException {
@@ -357,7 +349,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             if (value == null) {
                 out.nullValue();
             } else {
-                out.value(Base64.encodeBytes(value));
+                out.value(Base64.getEncoder().encodeToString(value));
             }
         }
 
@@ -366,8 +358,8 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
                 return null;
-            } 
-            return Base64.decode(in.nextString());
+            }
+            return Base64.getDecoder().decode(in.nextString());
         }
     }
     
@@ -409,7 +401,7 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             // We only take over if it's the beginning of an object, otherwise delegate
             if (in.peek() == JsonToken.BEGIN_OBJECT) {
                 // Send back a mutable list of 1
-                List<T> result = new ArrayList<T>(1);
+                List<T> result = new ArrayList<>(1);
                 result.add(instanceDelegate.read(in));
                 return result;
             }
