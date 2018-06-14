@@ -56,11 +56,15 @@ public class Mask {
             }
         }
         else {
-            String [] mask = builtedMask.split(Pattern.quote("."));
-            for (int count = 0; count < mask.length; count ++ ) {
-                if (count != 0){
-                    objectMask = new StringBuilder().append(objectMask).append(mask[count]).append(".").toString();
+            if(builtedMask.contains(".")){
+                String [] mask = builtedMask.split(Pattern.quote("."));
+                for (int count = 0; count < mask.length; count ++ ) {
+                    if (count != 0){
+                        objectMask = new StringBuilder().append(objectMask).append(mask[count]).append(".").toString();
+                    }
                 }
+            }else {
+                objectMask = builtedMask + ".";
             }
         }
         String resultMask = objectMask.substring(0, objectMask.length()-1);
