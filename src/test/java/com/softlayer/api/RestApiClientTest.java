@@ -313,68 +313,7 @@ public class RestApiClientTest {
         assertEquals(RestApiClient.HEADERS, http.headers);
         assertTrue(http.invokeSyncCalled);
     }
-    
-    @Test
-    public void testWithMask() throws Exception {
-        FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
-        client.setHttpClientFactory(http);
 
-        TestEntity entity = new TestEntity();
-        entity.setFoo("blah");
-        TestEntity.Service service = TestEntity.service(client);
-        service.withMask().foo().child().date();
-        service.withMask().child().baz();
-
-        assertEquals("some response", service.doSomethingStatic(123L, entity));
-        assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-            + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
-        assertTrue(http.invokeSyncCalled);
-    }
-    
-    @Test
-    public void testSetObjectMask() throws Exception {
-        FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
-        client.setHttpClientFactory(http);
-
-        TestEntity entity = new TestEntity();
-        entity.setFoo("blah");
-        TestEntity.Service service = TestEntity.service(client);
-        TestEntity.Mask mask = new TestEntity.Mask();
-        mask.foo().child().date();
-        mask.child().baz();
-        service.setMask(mask);
-
-        assertEquals("some response", service.doSomethingStatic(123L, entity));
-        assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-            + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
-        assertTrue(http.invokeSyncCalled);
-    }
-    
-    @Test
-    public void testSetStringMask() throws Exception {
-        FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
-        client.setHttpClientFactory(http);
-
-        TestEntity entity = new TestEntity();
-        entity.setFoo("blah");
-        TestEntity.Service service = TestEntity.service(client);
-        service.setMask("yay-a-mask");
-
-        assertEquals("some response", service.doSomethingStatic(123L, entity));
-        assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-            + "?objectMask=yay-a-mask", http.fullUrl);
-        assertTrue(http.invokeSyncCalled);
-    }
-    
     @Test
     public void testWithResultLimit() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
@@ -461,22 +400,7 @@ public class RestApiClientTest {
         assertTrue(successCalled.get());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testMaskMustNotBeNull() {
-        RestApiClient client = new RestApiClient("http://example.com/");
-        TestEntity.Service service = TestEntity.service(client);
-        service.setMask((Mask) null);
-    }
-    
-    @Test
-    public void testMaskRemoval() {
-        RestApiClient client = new RestApiClient("http://example.com/");
-        TestEntity.Service service = TestEntity.service(client);
-        service.withMask().baz();
-        assertEquals("baz", service.withMask().toString());
-        service.clearMask();
-        assertEquals("", service.withMask().toString());
-    }
+
 
     @Test
     public void testNormalObjectMethodsOnService() {
