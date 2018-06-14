@@ -45,26 +45,28 @@ public class Mask {
 
     @Override
     public String toString() {
+        String subMask = new String();
         String objectMask = new String();
-        String builtedMask = toString(new StringBuilder()).toString();
-        if(builtedMask.contains("[")){
-            String [] mask = builtedMask.split(Pattern.quote("["));
+        String builtMask = toString(new StringBuilder()).toString();
+        if(builtMask.contains("[")){
+            String [] mask = builtMask.split(Pattern.quote("["));
             for (int count = 0; count < mask.length; count ++ ) {
                 if (count != 0){
-                    objectMask = new StringBuilder().append(objectMask).append(mask[count]).toString();
+                    subMask = new StringBuilder().append(subMask).append("[").append(mask[count]).toString();
                 }
             }
+            objectMask = subMask.substring(1, subMask.length());
         }
         else {
-            if(builtedMask.contains(".")){
-                String [] mask = builtedMask.split(Pattern.quote("."));
+            if(builtMask.contains(".")){
+                String [] mask = builtMask.split(Pattern.quote("."));
                 for (int count = 0; count < mask.length; count ++ ) {
                     if (count != 0){
                         objectMask = new StringBuilder().append(objectMask).append(mask[count]).append(".").toString();
                     }
                 }
             }else {
-                objectMask = builtedMask + ".";
+                objectMask = builtMask + ".";
             }
         }
         String resultMask = objectMask.substring(0, objectMask.length()-1);
