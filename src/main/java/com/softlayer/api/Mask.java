@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /** Object mask parameter. See http://sldn.softlayer.com/article/Object-Masks */
 public class Mask {
@@ -45,32 +44,7 @@ public class Mask {
 
     @Override
     public String toString() {
-        String subMask = new String();
-        String objectMask = new String();
-        String builtMask = toString(new StringBuilder()).toString();
-        if(builtMask.contains("[")){
-            String [] mask = builtMask.split(Pattern.quote("["));
-            for (int count = 0; count < mask.length; count ++ ) {
-                if (count != 0){
-                    subMask = new StringBuilder().append(subMask).append("[").append(mask[count]).toString();
-                }
-            }
-            objectMask = subMask.substring(1, subMask.length());
-        }
-        else {
-            if(builtMask.contains(".")){
-                String [] mask = builtMask.split(Pattern.quote("."));
-                for (int count = 0; count < mask.length; count ++ ) {
-                    if (count != 0){
-                        objectMask = new StringBuilder().append(objectMask).append(mask[count]).append(".").toString();
-                    }
-                }
-            }else {
-                objectMask = builtMask + ".";
-            }
-        }
-        String resultMask = objectMask.substring(0, objectMask.length()-1);
-        return resultMask;
+        return toString(new StringBuilder()).toString();
     }
 
     /** Append this mask's string representation to the given builder and return it */

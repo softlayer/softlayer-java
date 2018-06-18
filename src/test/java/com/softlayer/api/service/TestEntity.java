@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import com.softlayer.api.ApiClient;
+import com.softlayer.api.Mask;
 import com.softlayer.api.ResponseHandler;
+import com.softlayer.api.ResultLimit;
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiProperty;
 import com.softlayer.api.annotation.ApiService;
@@ -113,6 +115,15 @@ public class TestEntity extends Entity {
         return moreChildren;
     }
 
+    @ApiProperty
+    protected List<TestEntity> recursiveProperty;
+
+    public List<TestEntity> getrecursiveProperty() {
+        if (recursiveProperty == null) {
+            recursiveProperty = new ArrayList<TestEntity>();
+        }
+        return recursiveProperty;
+    }
     public Service asService(ApiClient client) {
         return service(client, id);
     }
@@ -141,6 +152,9 @@ public class TestEntity extends Entity {
         
         @ApiMethod(instanceRequired = true)
         public Void doSomethingNonStatic(GregorianCalendar param1);
+
+        @ApiMethod("getRecursiveProperty")
+        public String getRecursiveProperty();
     }
     
     public static interface ServiceAsync extends com.softlayer.api.ServiceAsync {
@@ -162,7 +176,7 @@ public class TestEntity extends Entity {
     public static class Mask extends Entity.Mask {
         
         public Mask foo() {
-            withLocalProperty("bar");
+            withLocalProperty("foo");
             return this;
         }
         
@@ -182,6 +196,84 @@ public class TestEntity extends Entity {
         
         public Mask moreChildren() {
             return withSubMask("moreChildren", Mask.class);
+        }
+
+        public Mask recursiveProperty() {
+            return withSubMask("recursiveProperty", Mask.class);
+        }
+    }
+
+    public class TestService implements Service {
+
+        @Override
+        public ServiceAsync asAsync() {
+            return null;
+        }
+
+        @Override
+        public Mask withNewMask() {
+            return null;
+        }
+
+        @Override
+        public Mask withMask() {
+            return null;
+        }
+
+        @Override
+        public void setMask(com.softlayer.api.Mask mask) {
+
+        }
+
+        @Override
+        public void setMask(String mask) {
+
+        }
+
+        @Override
+        public void clearMask() {
+
+        }
+
+        @Override
+        public void setMask(Mask mask) {
+
+        }
+
+        @Override
+        public String doSomethingStatic(Long param1, TestEntity param2) {
+            return null;
+        }
+
+        @Override
+        public List<TestEntity> fakeName() {
+            return null;
+        }
+
+        @Override
+        public Void doSomethingNonStatic(GregorianCalendar param1) {
+            return null;
+        }
+
+        @Override
+        public String getRecursiveProperty() {
+            System.out.print("This is playing");
+            return "Thats playing to win";
+        }
+
+        @Override
+        public ResultLimit getResultLimit() {
+            return null;
+        }
+
+        @Override
+        public ResultLimit setResultLimit(ResultLimit limit) {
+            return null;
+        }
+
+        @Override
+        public Integer getLastResponseTotalItemCount() {
+            return null;
         }
     }
 }

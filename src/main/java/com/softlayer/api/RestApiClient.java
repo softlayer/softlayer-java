@@ -304,6 +304,7 @@ public class RestApiClient implements ApiClient {
         }
         
         public Object invokeService(Method method, final Object[] args) throws Throwable {
+            System.out.print("invokeService: " + method + "\n");
             ApiMethod methodInfo = method.getAnnotation(ApiMethod.class);
             // Must have ID if instance is required
             if (methodInfo.instanceRequired() && id == null) {
@@ -440,7 +441,7 @@ public class RestApiClient implements ApiClient {
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             boolean noParams = args == null || args.length == 0;
-
+            System.out.print("Invoking: " + method.getName() + "\n");
             if ("asAsync".equals(method.getName()) && noParams) {
                 ServiceProxy<S> asyncProxy = new ServiceProxy<>(serviceClass, id);
                 asyncProxy.mask = mask;
