@@ -106,7 +106,7 @@ public class MaskTest {
     }
 
     @Test
-    public void testRecursiveMaskandLocal() {
+    public void testRecursiveMaskAndLocal() {
         RestApiClient client = new RestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().recursiveProperty().baz();
@@ -137,16 +137,37 @@ public class MaskTest {
 
         service.withMask().moreChildren().recursiveProperty().baz();
         service.withMask().moreChildren().date();
+        String result = service.getRecursiveProperty();
 
         assertEquals("moreChildren[date,recursiveProperty.baz],recursiveProperty[foo,baz]",
                 service.withMask().toString());
     }
 
     @Test
-    public void testChangeMaskScope() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+    public void testNoChangeMaskScope() {
+
+
+        TestApiClient client = new TestApiClient("http://example.com/");
+
         client.setLoggingEnabled(true);
-        System.out.print("Hello");
+
+        TestEntity.Service service = TestEntity.service(client);
+        service.withMask().testThing().id();
+        service.withMask().testThing().first();
+
+        TestEntity result = service.getObject();
+        assertEquals("testThing[id,first]", service.withMask().toString());
+        String expected = "http://example.com/SoftLayer_TestEntity.json?objectMask=mask%5BtestThing%5Bid%2Cfirst%5D%5D";
+        assertEquals(expected, client.httpClientFactory.fullUrl);
+
+
+    }
+
+    @Test
+    public void testChangeMaskScope() {
+        TestApiClient client = new TestApiClient("http://example.com/");
+        client.setLoggingEnabled(true);
+
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();

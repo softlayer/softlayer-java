@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import com.softlayer.api.ApiClient;
-import com.softlayer.api.Mask;
 import com.softlayer.api.ResponseHandler;
 import com.softlayer.api.ResultLimit;
 import com.softlayer.api.annotation.ApiMethod;
@@ -118,12 +117,23 @@ public class TestEntity extends Entity {
     @ApiProperty
     protected List<TestEntity> recursiveProperty;
 
-    public List<TestEntity> getrecursiveProperty() {
+    public List<TestEntity> getRecursiveProperty() {
         if (recursiveProperty == null) {
             recursiveProperty = new ArrayList<TestEntity>();
         }
         return recursiveProperty;
     }
+
+    @ApiProperty
+    protected TestThing testThing;
+
+    public TestThing getTestThing() {
+        if (testThing == null) {
+            testThing = new TestThing();
+        }
+        return testThing;
+    }
+
     public Service asService(ApiClient client) {
         return service(client, id);
     }
@@ -155,6 +165,12 @@ public class TestEntity extends Entity {
 
         @ApiMethod("getRecursiveProperty")
         public String getRecursiveProperty();
+
+        @ApiMethod("getObject")
+        public TestEntity getObject();
+
+        @ApiMethod("getTestThing")
+        public TestThing getTestThing();
     }
     
     public static interface ServiceAsync extends com.softlayer.api.ServiceAsync {
@@ -174,7 +190,7 @@ public class TestEntity extends Entity {
     }
     
     public static class Mask extends Entity.Mask {
-        
+
         public Mask foo() {
             withLocalProperty("foo");
             return this;
@@ -199,11 +215,15 @@ public class TestEntity extends Entity {
         }
 
         public Mask recursiveProperty() {
-            return withSubMask("recursiveProperty", Mask.class);
+            return withSubMask("recursiveProperty", com.softlayer.api.service.TestEntity.Mask.class);
+        }
+        public TestThing.Mask testThing() {
+            return withSubMask("testThing", com.softlayer.api.service.TestThing.Mask.class);
         }
     }
 
-    public class TestService implements Service {
+    @ApiService("SoftLayer_TestEntity")
+    public static class ServiceTester implements Service {
 
         @Override
         public ServiceAsync asAsync() {
@@ -212,12 +232,13 @@ public class TestEntity extends Entity {
 
         @Override
         public Mask withNewMask() {
-            return null;
+            return new Mask();
         }
 
         @Override
         public Mask withMask() {
-            return null;
+
+            return new Mask();
         }
 
         @Override
@@ -257,10 +278,28 @@ public class TestEntity extends Entity {
 
         @Override
         public String getRecursiveProperty() {
-            System.out.print("This is playing");
-            return "Thats playing to win";
+            System.out.print("getRecursiveProperty\n");
+            System.out.print("MASK: " + withMask().toString() +"\n");
+
+            return "Hello World";
         }
 
+        @Override
+        public TestEntity getObject() {
+            TestEntity toReturn = new TestEntity();
+            toReturn.id = Long.valueOf(12345);
+            toReturn.baz = "GotBaz";
+            return toReturn;
+
+        }
+
+        @Override
+        public TestThing getTestThing() {
+            TestThing toReturn = new TestThing();
+            toReturn.id = Long.valueOf(5555);
+            toReturn.first = "First Test Thing";
+            return toReturn;
+        }
         @Override
         public ResultLimit getResultLimit() {
             return null;
