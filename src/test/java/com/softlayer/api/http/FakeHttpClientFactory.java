@@ -81,11 +81,11 @@ public class FakeHttpClientFactory extends HttpClientFactory implements HttpClie
     @Override
     public HttpResponse invokeSync(Callable<?> setupBody) {
         invokeSyncCalled = true;
-//        try {
-//            setupBody.call();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+        try {
+            setupBody.call();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         return this;
     }
 

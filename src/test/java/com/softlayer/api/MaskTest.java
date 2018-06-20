@@ -90,14 +90,14 @@ public class MaskTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMaskMustNotBeNull() {
-        RestApiClient client = new RestApiClient("http://example.com/");
+        RestApiClient client = new TestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.setMask((Mask) null);
     }
 
     @Test
     public void testMaskRemoval() {
-        RestApiClient client = new RestApiClient("http://example.com/");
+        RestApiClient client = new TestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().baz();
         assertEquals("baz", service.withMask().toString());
@@ -107,7 +107,7 @@ public class MaskTest {
 
     @Test
     public void testRecursiveMaskAndLocal() {
-        RestApiClient client = new RestApiClient("http://example.com/");
+        RestApiClient client = new TestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().recursiveProperty().baz();
         service.withMask().recursiveProperty().recursiveProperty().foo();
@@ -118,7 +118,7 @@ public class MaskTest {
 
     @Test
     public void testRecursiveMask() {
-        RestApiClient client = new RestApiClient("http://example.com/");
+        RestApiClient client = new TestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
@@ -130,7 +130,7 @@ public class MaskTest {
 
     @Test
     public void testMultiLevelMask() {
-        RestApiClient client = new RestApiClient("http://example.com/");
+        RestApiClient client = new TestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
@@ -149,11 +149,12 @@ public class MaskTest {
 
         TestApiClient client = new TestApiClient("http://example.com/");
 
-        client.setLoggingEnabled(true);
+//        client.setLoggingEnabled(true);
 
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().testThing().id();
         service.withMask().testThing().first();
+
 
         TestEntity result = service.getObject();
         assertEquals("testThing[id,first]", service.withMask().toString());
@@ -165,20 +166,17 @@ public class MaskTest {
 
     @Test
     public void testChangeMaskScope() {
+// https://github.com/softlayer/softlayer-java/issues/19
+
         TestApiClient client = new TestApiClient("http://example.com/");
-        client.setLoggingEnabled(true);
+//        client.setLoggingEnabled(true);
 
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
 
         String result = service.getRecursiveProperty();
-        System.out.print(result);
-//        RestApiClient.ServiceProxy serviceProxy = client.createService(TestEntity, 1234);
-//        serviceProxy.invoke(service, service.getRecursiveProperty(),null);
-//        assertEquals("http://example.com/SomeService/1234/someMethod.json?objectMask=someMask%26%26",
-//                client.ServiceProxy.
-//        )
+//        assertEquals("baz,foo", service.withMask());
     }
 }
 

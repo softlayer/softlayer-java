@@ -278,9 +278,6 @@ public class TestEntity extends Entity {
 
         @Override
         public String getRecursiveProperty() {
-            System.out.print("getRecursiveProperty\n");
-            System.out.print("MASK: " + withMask().toString() +"\n");
-
             return "Hello World";
         }
 
