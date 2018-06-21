@@ -272,7 +272,7 @@ public class ClassWriter extends JavaWriter {
             if (!method.name.equals(method.meta.name)) {
                 params.put("value", stringLiteral(method.meta.name));
             }
-            if (!method.meta.isstatic) {
+            if (!method.meta.isstatic && !"SoftLayer_Resource_Metadata".equals(type.meta.name)) {
                 params.put("instanceRequired", true);
             }
             emitAnnotation(TYPE_API_METHOD, params);
