@@ -4,7 +4,7 @@
   <artifactId>softlayer-api-client</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.5</version>
+  <version>0.2.6</version>
   <name>SoftLayer API Client for Java</name>
   <description>API client for accessing the SoftLayer API</description>
   <url>http://sldn.softlayer.com</url>
@@ -41,7 +41,7 @@
     <connection>scm:git:git@github.com:softlayer/softlayer-java.git</connection>
     <developerConnection>scm:git:git@github.com:softlayer/softlayer-java.git</developerConnection>
     <url>git@github.com:softlayer/softlayer-java.git</url>
-    <tag>0.2.5</tag>
+    <tag>0.2.6</tag>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -67,7 +67,7 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.6</version>
+      <version>2.8.5</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -78,7 +78,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>2.8.47</version>
+      <version>2.23.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -87,7 +87,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.8.0</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -109,18 +109,18 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.0-M1</version>
+        <version>3.0.1</version>
+        <configuration>
+          <!-- SLDN documentation contains HTML, but it isn't well formatted. -->
+          <!-- Java 8 will error if we don't skip doclint here -->
+          <doclint>none</doclint>
+        </configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
             <goals>
               <goal>jar</goal>
             </goals>
-            <configuration>
-                <!-- SLDN documentation contains HTML, but it isn't well formatted. -->
-                <!-- Java 8 will error if we don't skip doclint here -->
-              <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -141,8 +141,7 @@
       <!-- Generate services -->
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <!-- https://issues.apache.org/jira/browse/MINVOKER-224 prevents an upgrade to 3.0.1 -->
-        <version>2.0.0</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>generate-services</id>
