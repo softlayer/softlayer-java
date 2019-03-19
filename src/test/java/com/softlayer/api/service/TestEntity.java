@@ -5,16 +5,17 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.concurrent.Future;
 
-import com.softlayer.api.ApiClient;
-import com.softlayer.api.ResponseHandler;
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiProperty;
 import com.softlayer.api.annotation.ApiService;
 import com.softlayer.api.annotation.ApiType;
+import com.softlayer.api.ApiClient;
+import com.softlayer.api.ResponseHandler;
+import com.softlayer.api.ResultLimit;
 
 @ApiType("SoftLayer_TestEntity")
 public class TestEntity extends Entity {
-    
+
     @ApiProperty(canBeNullOrNotSet = true)
     protected Long id;
 
@@ -37,80 +38,100 @@ public class TestEntity extends Entity {
         id = null;
         idSpecified = false;
     }
-    
+
     @ApiProperty("bar")
     protected String foo;
-    
+
     public String getFoo() {
         return foo;
     }
-    
+
     public void setFoo(String foo) {
         this.foo = foo;
     }
-    
+
     @ApiProperty(canBeNullOrNotSet = true)
     protected String baz;
     protected boolean bazSpecified;
-    
+
     public String getBaz() {
         return baz;
     }
-    
+
     public void setBaz(String baz) {
         bazSpecified = true;
         this.baz = baz;
     }
-    
+
     public boolean isBazSpecified() {
         return bazSpecified;
     }
-    
+
     public void unsetBaz() {
         baz = null;
         bazSpecified = false;
     }
-    
+
     @ApiProperty
     protected GregorianCalendar date;
-    
+
     public GregorianCalendar getDate() {
         return date;
     }
-    
+
     public void setDate(GregorianCalendar date) {
         this.date = date;
     }
-    
+
     protected String notApiProperty;
-    
+
     public String getNotApiProperty() {
         return notApiProperty;
     }
-    
+
     public void setNotApiProperty(String notApiProperty) {
         this.notApiProperty = notApiProperty;
     }
-    
+
     @ApiProperty
     protected TestEntity child;
-    
+
     public TestEntity getChild() {
         return child;
     }
-    
+
     public void setChild(TestEntity child) {
         this.child = child;
     }
-    
+
     @ApiProperty
     protected List<TestEntity> moreChildren;
-    
+
     public List<TestEntity> getMoreChildren() {
         if (moreChildren == null) {
             moreChildren = new ArrayList<TestEntity>();
         }
         return moreChildren;
+    }
+
+    @ApiProperty
+    protected List<TestEntity> recursiveProperty;
+
+    public List<TestEntity> getRecursiveProperty() {
+        if (recursiveProperty == null) {
+            recursiveProperty = new ArrayList<TestEntity>();
+        }
+        return recursiveProperty;
+    }
+
+    @ApiProperty
+    protected TestThing testThing;
+
+    public TestThing getTestThing() {
+        if (testThing == null) {
+            testThing = new TestThing();
+        }
+        return testThing;
     }
 
     public Service asService(ApiClient client) {
@@ -124,64 +145,89 @@ public class TestEntity extends Entity {
     public static Service service(ApiClient client, Long id) {
         return client.createService(Service.class, id == null ? null : id.toString());
     }
-    
+
     @ApiService("SoftLayer_TestEntity")
     public static interface Service extends com.softlayer.api.Service {
 
         public ServiceAsync asAsync();
+
         public Mask withNewMask();
+
         public Mask withMask();
+
         public void setMask(Mask mask);
-        
+
         @ApiMethod
         public String doSomethingStatic(Long param1, TestEntity param2);
-        
+
         @ApiMethod("actualName")
         public List<TestEntity> fakeName();
-        
+
         @ApiMethod(instanceRequired = true)
         public Void doSomethingNonStatic(GregorianCalendar param1);
+
+        @ApiMethod("getRecursiveProperty")
+        public String getRecursiveProperty();
+
+        @ApiMethod("getObject")
+        public TestEntity getObject();
+
+        @ApiMethod("getTestThing")
+        public TestThing getTestThing();
     }
-    
+
     public static interface ServiceAsync extends com.softlayer.api.ServiceAsync {
 
         public Mask withNewMask();
+
         public Mask withMask();
+
         public void setMask(Mask mask);
-        
+
         public Future<String> doSomethingStatic(Long param1, TestEntity param2);
+
         public Future<?> doSomethingStatic(Long param1, TestEntity param2, ResponseHandler<String> handler);
-        
+
         public Future<String> fakeName();
+
         public Future<?> fakeName(ResponseHandler<String> handler);
-        
+
         public Future<Void> doSomethingNonStatic(GregorianCalendar param1);
+
         public Future<?> doSomethingNonStatic(GregorianCalendar param1, ResponseHandler<String> handler);
     }
-    
+
     public static class Mask extends Entity.Mask {
-        
+
         public Mask foo() {
-            withLocalProperty("bar");
+            withLocalProperty("foo");
             return this;
         }
-        
+
         public Mask baz() {
             withLocalProperty("baz");
             return this;
         }
-        
+
         public Mask date() {
             withLocalProperty("date");
             return this;
         }
-        
+
         public Mask child() {
             return withSubMask("child", Mask.class);
         }
-        
+
         public Mask moreChildren() {
             return withSubMask("moreChildren", Mask.class);
+        }
+
+        public Mask recursiveProperty() {
+            return withSubMask("recursiveProperty", com.softlayer.api.service.TestEntity.Mask.class);
+        }
+
+        public TestThing.Mask testThing() {
+            return withSubMask("testThing", com.softlayer.api.service.TestThing.Mask.class);
         }
     }
 }
