@@ -2,37 +2,27 @@ package com.softlayer.api;
 
 import static org.junit.Assert.*;
 
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
 import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.softlayer.api.http.FakeHttpClientFactory;
-import com.softlayer.api.http.HttpBasicAuthCredentials;
 import com.softlayer.api.json.GsonJsonMarshallerFactoryTest;
 import com.softlayer.api.service.TestEntity;
-
-
 
 public class MaskTest {
     static {
         GsonJsonMarshallerFactoryTest.addTestEntityToGson();
     }
+
     @Test
     public void testWithMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-                Collections.emptyMap(), "\"some response\"");
+            Collections.emptyMap(), "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/")
-                .withCredentials("user", "key");
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
 
         TestEntity entity = new TestEntity();
@@ -43,16 +33,16 @@ public class MaskTest {
 
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-                + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
+            + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
 
     @Test
     public void testSetObjectMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-                Collections.emptyMap(), "\"some response\"");
+            Collections.emptyMap(), "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/")
-                .withCredentials("user", "key");
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
 
         TestEntity entity = new TestEntity();
@@ -65,16 +55,16 @@ public class MaskTest {
 
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-                + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
+            + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
 
     @Test
     public void testSetStringMask() {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-                Collections.emptyMap(), "\"some response\"");
+            Collections.emptyMap(), "\"some response\"");
         RestApiClient client = new RestApiClient("http://example.com/")
-                .withCredentials("user", "key");
+            .withCredentials("user", "key");
         client.setHttpClientFactory(http);
 
         TestEntity entity = new TestEntity();
@@ -84,20 +74,20 @@ public class MaskTest {
 
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
-                + "?objectMask=yay-a-mask", http.fullUrl);
+            + "?objectMask=yay-a-mask", http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testMaskMustNotBeNull() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+        RestApiClient client = new RestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.setMask((Mask) null);
     }
 
     @Test
     public void testMaskRemoval() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+        RestApiClient client = new RestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().baz();
         assertEquals("baz", service.withMask().toString());
@@ -107,30 +97,34 @@ public class MaskTest {
 
     @Test
     public void testRecursiveMaskAndLocal() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+        RestApiClient client = new RestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().recursiveProperty().baz();
         service.withMask().recursiveProperty().recursiveProperty().foo();
         service.withMask().recursiveProperty().date();
         assertEquals("recursiveProperty[date,recursiveProperty[foo,baz]]",
-                service.withMask().toString());
+            service.withMask().toString());
     }
 
     @Test
     public void testRecursiveMask() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+        RestApiClient client = new RestApiClient("http://example.com/");
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
         service.withMask().recursiveProperty().date();
 
         assertEquals("recursiveProperty[date,foo,baz]",
-                service.withMask().toString());
+            service.withMask().toString());
     }
 
     @Test
     public void testMultiLevelMask() {
-        RestApiClient client = new TestApiClient("http://example.com/");
+        FakeHttpClientFactory http = new FakeHttpClientFactory(200,
+            Collections.emptyMap(),"");
+        RestApiClient client = new RestApiClient("http://example.com/");
+        client.setHttpClientFactory(http);
+
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
@@ -140,43 +134,40 @@ public class MaskTest {
         String result = service.getRecursiveProperty();
 
         assertEquals("moreChildren[date,recursiveProperty.baz],recursiveProperty[foo,baz]",
-                service.withMask().toString());
+            service.withMask().toString());
     }
 
     @Test
     public void testNoChangeMaskScope() {
-
-
-        TestApiClient client = new TestApiClient("http://example.com/");
-
-//        client.setLoggingEnabled(true);
+        FakeHttpClientFactory http = new FakeHttpClientFactory(200,
+            Collections.emptyMap(),"");
+        RestApiClient client = new RestApiClient("http://example.com/");
+        client.setHttpClientFactory(http);
 
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().testThing().id();
         service.withMask().testThing().first();
 
-
         TestEntity result = service.getObject();
         assertEquals("testThing[id,first]", service.withMask().toString());
         String expected = "http://example.com/SoftLayer_TestEntity.json?objectMask=mask%5BtestThing%5Bid%2Cfirst%5D%5D";
-        assertEquals(expected, client.httpClientFactory.fullUrl);
-
-
+        assertEquals(expected, http.fullUrl);
     }
 
+    /**
+     * This doesn't work due to the issues mentioned in https://github.com/softlayer/softlayer-java/issues/19
+     */
     @Test
+    @Ignore
     public void testChangeMaskScope() {
-// https://github.com/softlayer/softlayer-java/issues/19
-
-        TestApiClient client = new TestApiClient("http://example.com/");
-//        client.setLoggingEnabled(true);
+        RestApiClient client = new RestApiClient("http://example.com/");
 
         TestEntity.Service service = TestEntity.service(client);
         service.withMask().recursiveProperty().baz();
         service.withMask().recursiveProperty().foo();
 
         String result = service.getRecursiveProperty();
-//        assertEquals("baz,foo", service.withMask());
+        assertEquals("baz,foo", service.withMask().toString());
     }
 }
 

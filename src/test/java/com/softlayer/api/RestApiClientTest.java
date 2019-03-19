@@ -5,10 +5,8 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Proxy;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.GregorianCalendar;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -399,8 +397,6 @@ public class RestApiClientTest {
         assertTrue(http.invokeAsyncCallbackCalled);
         assertTrue(successCalled.get());
     }
-
-
 
     @Test
     public void testNormalObjectMethodsOnService() {
