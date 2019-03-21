@@ -27,19 +27,34 @@ servers and may charge your account.
 
 ## Using
 
-To add the project you your Maven project, add the dependency:
+Add the library as a dependency using your favorite build tooling.
+
+Note that the published client library is built upon the state of the API at the time of the version's release.
+It will contain the generated artifacts as of that time only.
+See "Building" for more information on how to regenerate the artifacts to get regular
+additions to the SoftLayer API.
+
+### Maven
 
 ```xml
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.2.6</version>
+  <version>0.2.7</version>
 </dependency>
 ```
 
-Note, the client published to Maven is built upon version change of this project. It will contain the generated
-artifacts as of that time only. See "Building" for more information on how to regenerate the artifacts to get regular
-additions to the SoftLayer API.
+### Gradle
+
+```groovy
+implementation 'com.softlayer.api:softlayer-api-client:0.2.7'
+```
+
+### Kotlin
+
+```kotlin
+compile("com.softlayer.api:softlayer-api-client:0.2.7")
+```
 
 ### Creating a Client
 
