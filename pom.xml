@@ -87,7 +87,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.8.1</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -96,7 +96,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -109,11 +109,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.0.1</version>
+        <version>3.1.1</version>
         <configuration>
           <!-- SLDN documentation contains HTML, but it isn't well formatted. -->
           <!-- Java 8 will error if we don't skip doclint here -->
           <doclint>none</doclint>
+          <source>${java.version}</source>
         </configuration>
         <executions>
           <execution>
@@ -141,7 +142,7 @@
       <!-- Generate services -->
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.1</version>
         <executions>
           <execution>
             <id>generate-services</id>
