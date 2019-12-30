@@ -1,4 +1,11 @@
 language: java
+
+addons:
+  apt:
+    update: true
+    packages:
+      - pandoc
+
 jdk:
   - oraclejdk11
   - openjdk8
@@ -6,4 +13,19 @@ jdk:
   - openjdk10
   - openjdk11
   - openjdk12
-install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
+
+install:
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
+  - mkdir ghpages
+  - pandoc -o ghpages/index.html README.md
+  - printf "%s" "$GH_PAGES_DEPLOYMENT_KEY" > gh_pages_deployment_key
+
+deploy:
+  provider: pages:git
+  edge: true
+  skip_cleanup: true
+  local_dir: ghpages
+  deploy_key: gh_pages_deployment_key
+  keep_history: true
+  on:
+    branch: master

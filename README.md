@@ -289,4 +289,4 @@ fully qualified class name of your implementation on a single line in a file in 
 
 ## Copyright
 
-This software is Copyright (c) 2018 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
+This software is Copyright (c) 2020 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
