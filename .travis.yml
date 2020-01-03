@@ -18,7 +18,7 @@ install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
   - mkdir ghpages
   - pandoc -o ghpages/index.html README.md
-  - printf "%s" "$GH_PAGES_DEPLOYMENT_KEY" > gh_pages_deployment_key
+  - printf "$GH_PAGES_DEPLOYMENT_KEY" > gh_pages_deployment_key
 
 deploy:
   provider: pages:git

@@ -14,7 +14,7 @@ import java.util.Set;
 /** Entry point for the code generator */
 public class Main {
 
-    protected static final String METADATA_URL = "https://api.softlayer.com/metadata/v3.1";
+    protected static final String METADATA_URL = "https://api.softlayer.com/metadata/v3.1/";
     protected static final String DEFAULT_SOURCE_PATH = "../src/main/java";
     
     public static final String USAGE = 
@@ -23,7 +23,7 @@ public class Main {
         " --src DIR - Optional directory to generate source into. The com.softlayer.api.service package\n" +
         "   underneath this directory will be cleaned before code is generated. If not given,\n" +
         "   ../src/main/java is used\n" +
-        " --url URL - Optional metadata URL. If not given, http://api.softlayer.com/metadata is used.\n" +
+        " --url URL - Optional metadata URL. If not given, http://api.softlayer.com/metadata/v3.1/ is used.\n" +
         " --whitelist FILENAME - Optional set of types, properties, and methods to whitelist. It is one\n" +
         "   entry per line and anything not entered will not be included in the generated client. Simply\n" +
         "   give the type name, the property as type_name.propertyName, or the method as type_name::methodName.\n" +
