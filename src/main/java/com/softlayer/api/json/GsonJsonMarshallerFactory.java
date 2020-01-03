@@ -208,8 +208,8 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             // Begin/end object (and the first "complexType" property) are done outside of here
             Entity entity;
             try {
-                entity = typeClass.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
+                entity = typeClass.getDeclaredConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
             Map<String, Object> unknownProperties = new HashMap<>();

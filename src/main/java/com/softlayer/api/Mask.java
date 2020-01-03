@@ -29,7 +29,7 @@ public class Mask {
         T subMask = (T) subMasks.get(name);
         if (subMask == null) {
             try {
-                subMask = maskClass.newInstance();
+                subMask = maskClass.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new RuntimeException();
             }

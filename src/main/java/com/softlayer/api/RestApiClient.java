@@ -449,12 +449,12 @@ public class RestApiClient implements ApiClient {
                 return Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[] { method.getReturnType() }, asyncProxy);
             } else if ("withNewMask".equals(method.getName()) && noParams) {
-                mask = (Mask) method.getReturnType().newInstance();
+                mask = (Mask) method.getReturnType().getDeclaredConstructor().newInstance();
                 maskString = null;
                 return mask;
             } else if ("withMask".equals(method.getName()) && noParams) {
                 if (mask == null) {
-                    mask = (Mask) method.getReturnType().newInstance();
+                    mask = (Mask) method.getReturnType().getDeclaredConstructor().newInstance();
                     maskString = null;
                 }
                 return mask;
