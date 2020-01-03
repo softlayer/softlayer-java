@@ -16,16 +16,3 @@ jdk:
 
 install:
   - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
-  - mkdir ghpages
-  - pandoc -o ghpages/index.html README.md
-  - printf "$GH_PAGES_DEPLOYMENT_KEY" > gh_pages_deployment_key
-
-deploy:
-  provider: pages:git
-  edge: true
-  skip_cleanup: true
-  local_dir: ghpages
-  deploy_key: gh_pages_deployment_key
-  keep_history: true
-  on:
-    branch: master
