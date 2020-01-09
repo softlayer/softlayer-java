@@ -1,0 +1,153 @@
+<h1 id="softlayer-api-client-for-java">SoftLayer API Client for Java</h1>
+<p><a href="https://travis-ci.org/softlayer/softlayer-java"><img src="https://travis-ci.org/softlayer/softlayer-java.svg" alt="Build Status" /></a> <a href="https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client"><img src="https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client/badge.svg" alt="Maven Central" /></a> <a href="https://www.javadoc.io/doc/com.softlayer.api/softlayer-api-client"><img src="https://www.javadoc.io/badge/com.softlayer.api/softlayer-api-client.svg" alt="Javadocs" /></a></p>
+<h2 id="introduction">Introduction</h2>
+<p>This library provides a JVM client for the <a href="http://sldn.softlayer.com/article/SoftLayer-API-Overview">SoftLayer API</a>. It has code generated and compiled via Maven. The client can work with any Java 8+ runtime. It uses the code generation project in <code>gen/</code> to generate the service and type related code. Although likely to work in resource-constrained environments (i.e. Android, J2ME, etc), using this is not recommended; Use the <a href="http://sldn.softlayer.com/article/REST">REST</a> API instead.</p>
+<p>By default the HTTP client is the Java <code>HttpUrlConnection</code> and the JSON marshalling is done by <a href="https://code.google.com/p/google-gson/">Gson</a>. Both of these pieces can be exchanged for alternative implementations (see below).</p>
+<p>The <code>examples/</code> project has sample uses of the API. It can be executed from Maven while inside the <code>examples/</code> folder via a command:</p>
+<pre><code>mvn -q compile exec:java -Dexec.args=&quot;EXAMPLE_NAME API_USER API_KEY&quot;</code></pre>
+<p>Where <code>EXAMPLE_NAME</code> is the unqualified class name of an example in the <code>com.softlayer.api.example</code> package (e.g. <code>ListServers</code>), <code>API_USER</code> is your API username, and <code>API_KEY</code> is your API key. NOTE: Some examples order virtual servers and may charge your account.</p>
+<h2 id="using">Using</h2>
+<p>Add the library as a dependency using your favorite build tooling.</p>
+<p>Note that the published client library is built upon the state of the API at the time of the version's release. It will contain the generated artifacts as of that time only. See &quot;Building&quot; for more information on how to regenerate the artifacts to get regular additions to the SoftLayer API.</p>
+<h3 id="maven">Maven</h3>
+<div class="sourceCode"><pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;dependency&gt;</span>
+  <span class="kw">&lt;groupId&gt;</span>com.softlayer.api<span class="kw">&lt;/groupId&gt;</span>
+  <span class="kw">&lt;artifactId&gt;</span>softlayer-api-client<span class="kw">&lt;/artifactId&gt;</span>
+  <span class="kw">&lt;version&gt;</span>0.2.8<span class="kw">&lt;/version&gt;</span>
+<span class="kw">&lt;/dependency&gt;</span></code></pre></div>
+<h3 id="gradle">Gradle</h3>
+<pre class="groovy"><code>implementation &#39;com.softlayer.api:softlayer-api-client:0.2.8&#39;</code></pre>
+<h3 id="kotlin">Kotlin</h3>
+<div class="sourceCode"><pre class="sourceCode kotlin"><code class="sourceCode kotlin"><span class="fu">compile</span>(<span class="st">&quot;com.softlayer.api:softlayer-api-client:0.2.8&quot;</span>)</code></pre></div>
+<h3 id="creating-a-client">Creating a Client</h3>
+<p>All clients are instances of <code>ApiClient</code>. Currently there is only one implementation, the <code>RestApiClient</code>. Simply instantiate it and provide your credentials:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.*;</span>
+
+ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withCredentials</span>(<span class="st">&quot;my user&quot;</span>, <span class="st">&quot;my api key&quot;</span>);</code></pre></div>
+<p>If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the <code>RestApiClient</code>. By default it is set to <code>https://api.softlayer.com/rest/v3.1/</code>.</p>
+<h3 id="making-api-calls">Making API Calls</h3>
+<p>Once a client is created, it can be used to access services. There are hundreds of services to control your SoftLayer account. A simple one is the <code>Account</code> service. Here's a call to get all of the hardware on the account:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.service.Account;</span>
+<span class="kw">import com.softlayer.api.service.Hardware;</span>
+
+<span class="kw">for</span> (Hardware hardware : Account.<span class="fu">service</span>(client).<span class="fu">getHardware</span>()) {
+    System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Hardware: &quot;</span> + hardware.<span class="fu">getFullyQualifiedDomainName</span>());
+}</code></pre></div>
+<p>Some calls on a service require an ID to know what object to act on. This can be obtained by passing in the numeric ID into the <code>service</code> method or by calling <code>asService</code> on an object that has an ID. Here's an example of soft-rebooting a virtual server with &quot;reboot-test&quot; as the hostname:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.service.virtual.Guest;</span>
+
+<span class="kw">for</span> (Guest guest : Account.<span class="fu">service</span>(client).<span class="fu">getVirtualGuests</span>()) {
+    <span class="kw">if</span> (<span class="st">&quot;reboot-test&quot;</span>.<span class="fu">equals</span>(guest.<span class="fu">getHostname</span>())) {
+        guest.<span class="fu">asService</span>(client).<span class="fu">rebootSoft</span>();
+    }
+}</code></pre></div>
+<p>Some calls require sending in data. This is done by just instantiating the object and populating the data. Here's an example of ordering a new virtual server: (Note running this can charge your account)</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.service.virtual.Guest;</span>
+
+Guest guest = <span class="kw">new</span> <span class="fu">Guest</span>();
+guest.<span class="fu">setHostname</span>(<span class="st">&quot;myhostname&quot;</span>);
+guest.<span class="fu">setDomain</span>(<span class="st">&quot;example.com&quot;</span>);
+guest.<span class="fu">setStartCpus</span>(<span class="dv">1</span>);
+guest.<span class="fu">setMaxMemory</span>(<span class="dv">1024</span>);
+guest.<span class="fu">setHourlyBillingFlag</span>(<span class="kw">true</span>);
+guest.<span class="fu">setOperatingSystemReferenceCode</span>(<span class="st">&quot;UBUNTU_LATEST&quot;</span>);
+guest.<span class="fu">setLocalDiskFlag</span>(<span class="kw">false</span>);
+guest.<span class="fu">setDatacenter</span>(<span class="kw">new</span> Location());
+guest.<span class="fu">getDatacenter</span>().<span class="fu">setName</span>(<span class="st">&quot;dal05&quot;</span>);
+guest = Guest.<span class="fu">service</span>(client).<span class="fu">createObject</span>(guest);
+System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Virtual server ordered with ID: &quot;</span> + guest.<span class="fu">getId</span>());</code></pre></div>
+<h3 id="using-object-masks">Using Object Masks</h3>
+<p>Object masks are a great way to reduce the number of API calls to traverse the data graph of an object. For example, here's how by just asking for an account, you can retrieve all your VLANs, their datacenter, and the firewall rules that are on them:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.service.Account;</span>
+<span class="kw">import com.softlayer.api.service.network.Vlan;</span>
+<span class="kw">import com.softlayer.api.service.network.vlan.firewall.Rule;</span>
+
+Account.<span class="fu">Service</span> service = Account.<span class="fu">service</span>(client);
+service.<span class="fu">withMask</span>().<span class="fu">networkVlans</span>().<span class="fu">vlanNumber</span>();
+service.<span class="fu">withMask</span>().<span class="fu">networkVlans</span>().<span class="fu">primaryRouter</span>().<span class="fu">datacenter</span>().<span class="fu">longName</span>();
+service.<span class="fu">withMask</span>().<span class="fu">networkVlans</span>().<span class="fu">firewallRules</span>().
+    <span class="fu">orderValue</span>().
+    <span class="fu">sourceIpAddress</span>().
+    <span class="fu">sourceIpCidr</span>();
+
+<span class="kw">for</span> (Vlan vlan : service.<span class="fu">getObject</span>().<span class="fu">getNetworkVlans</span>()) {
+    <span class="kw">for</span> (Rule rule : vlan.<span class="fu">getFirewallRules</span>()) {
+        System.<span class="fu">out.format</span>(<span class="st">&quot;Rule </span><span class="ch">%d</span><span class="st"> on VLAN </span><span class="ch">%d</span><span class="st"> in </span><span class="ch">%s</span><span class="st"> has some restriction on subnet </span><span class="ch">%s</span><span class="st">/</span><span class="ch">%d\n</span><span class="st">&quot;</span>,
+            rule.<span class="fu">getOrderValue</span>(), vlan.<span class="fu">getVlanNumber</span>(),
+            vlan.<span class="fu">getPrimaryRouter</span>().<span class="fu">getDatacenter</span>().<span class="fu">getLongName</span>(),
+            rule.<span class="fu">getSourceIpAddress</span>(), rule.<span class="fu">getSourceIpCidr</span>());
+    }
+}</code></pre></div>
+<p>All values of a type can be masked upon. If a value represents a primitive or collection of primitives, the same mask it is called on is returned. Otherwise the mask of the other type is given. These translate into SoftLayer's <a href="http://sldn.softlayer.com/article/Object-Masks">string-based object mask format</a>. A string or an instance of a mask can be given directly by calling <code>setMask</code> on the service. Note, when object masks are added on a service object, they will be sent with every service call unless removed via <code>clearMask</code> or overwritten via <code>withNewMask</code> or <code>setMask</code>.</p>
+<h3 id="asynchronous-invocation">Asynchronous Invocation</h3>
+<p>All services also provide an asynchronous interface. This can be obtained from a service by calling <code>asAsync</code>. Here's an example of getting all top level billing items and listing when they were created:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import java.util.List;</span>
+<span class="kw">import com.softlayer.api.service.ResponseHandler;</span>
+<span class="kw">import com.softlayer.api.service.Account;</span>
+<span class="kw">import com.softlayer.api.service.billing.Item;</span>
+
+Account.<span class="fu">service</span>(client).<span class="fu">asAsync</span>().<span class="fu">getAllTopLevelBillingItems</span>(<span class="kw">new</span> ResponseHandler&lt;List&lt;Item&gt;&gt;() {
+    <span class="fu">@Override</span>
+    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onError</span>(Exception ex) {
+        ex.<span class="fu">printStackTrace</span>();
+    }
+
+    <span class="fu">@Override</span>
+    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onSuccess</span>(List&lt;Item&gt; items) {
+        <span class="kw">for</span> (Item item : items) {
+            System.<span class="fu">out.format</span>(<span class="st">&quot;Billing item </span><span class="ch">%s</span><span class="st"> created on </span><span class="ch">%s\n</span><span class="st">&quot;</span>, item.<span class="fu">getDescription</span>(), item.<span class="fu">getCreateDate</span>());
+        }
+    }
+}).<span class="fu">get</span>();</code></pre></div>
+<p>Using the default HTTP client, this runs the call in a separate thread and calls the handler parameter upon completion. The <code>get</code> at the end basically makes it wait forever so the application doesn't exit out from under us. With the default HTTP client the asynchronous invocations are handled by a simple thread pool that defaults to a cached thread pool that creates daemon threads. It can be changed:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import java.util.concurrent.Executors;</span>
+<span class="kw">import java.util.concurrent.ExecutorService;</span>
+<span class="kw">import com.softlayer.api.service.RestApiClient;</span>
+<span class="kw">import com.softlayer.api.service.http.ThreadPoolHttpClientFactory;</span>
+<span class="kw">import com.softlayer.api.service.billing.Item;</span>
+
+RestApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>();
+ExecutorService threadPool = Executors.<span class="fu">newFixedThreadPool</span>(<span class="dv">3</span>);
+((ThreadPoolHttpClientFactory) client.<span class="fu">getHttpClientFactory</span>()).<span class="fu">setThreadPool</span>(threadPool);</code></pre></div>
+<p>Unlike using the default thread pool, you will be responsible for shutting down this overridden thread pool as necessary. Other HTTP client implementations may handle asynchrony differently and not use thread pools at all.</p>
+<p>In addition to the callback-style above, can also get the response as a <code>Future</code>. Here's an example of waiting 10 seconds to get all top level billing items:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import java.util.List;</span>
+<span class="kw">import java.util.concurrent.TimeUnit;</span>
+<span class="kw">import java.util.concurrent.Future;</span>
+<span class="kw">import com.softlayer.api.service.Account;</span>
+<span class="kw">import com.softlayer.api.service.billing.Item;</span>
+
+Future&lt;List&lt;Item&gt;&gt; response = Account.<span class="fu">service</span>(client).<span class="fu">asAsync</span>().<span class="fu">getAllTopLevelBillingItems</span>();
+List&lt;Item&gt; items = response.<span class="fu">get</span>(<span class="dv">10</span>, TimeUnit.<span class="fu">SECONDS</span>);
+<span class="kw">for</span> (Item item : items) {
+    System.<span class="fu">out.format</span>(<span class="st">&quot;Billing item </span><span class="ch">%s</span><span class="st"> created on </span><span class="ch">%s\n</span><span class="st">&quot;</span>, item.<span class="fu">getDescription</span>(), item.<span class="fu">getCreateDate</span>());
+}</code></pre></div>
+<h3 id="thread-safety">Thread Safety</h3>
+<p>No class in this library is guaranteed to be thread-safe. Callers are expected to keep this in mind when developing with the library and to never use the same <code>ApiClient</code> (or any other object created with it) concurrently across threads.</p>
+<h3 id="pagination">Pagination</h3>
+<p>Sometimes there is a need to get the responses from the SoftLayer API in a paginated way instead of all at once. This can be done by utilizing result limits. A result limit can be passed in with the number of results requested and the offset to start reading from. Requesting smaller amounts of data will increase the performance of the call. Here is an example of obtaining the first 10 tickets and outputting the total:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.ResultLimit;</span>
+<span class="kw">import com.softlayer.api.service.Account;</span>
+<span class="kw">import com.softlayer.api.service.Ticket;</span>
+
+Account.<span class="fu">Service</span> service = Account.<span class="fu">service</span>(client);
+service.<span class="fu">setResultLimit</span>(<span class="kw">new</span> <span class="fu">ResultLimit</span>(<span class="dv">10</span>));
+<span class="kw">for</span> (Ticket ticket : service.<span class="fu">getTickets</span>()) {
+    System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Got ticket &quot;</span> + ticket.<span class="fu">getTitle</span>());
+}
+System.<span class="fu">out</span>.<span class="fu">println</span>(<span class="st">&quot;Total tickets on the account: &quot;</span> + service.<span class="fu">getLastResponseTotalItemCount</span>());</code></pre></div>
+<p>The services are not guaranteed to be thread-safe on their own, so it is difficult to obtain the total with <code>getLastResponseTotalItemCount</code> when using the service asynchronously. To assist with this when using the callback style, the <code>ResponseHandlerWithHeaders</code> can be used instead of <code>ResponseHandler</code>. But the safest way is to only use a single service per thread.</p>
+<h3 id="differences-from-the-api">Differences from the API</h3>
+<p>Due to restrictions on identifiers in Java, some properties, methods, classes, and packages will be named differently from the naming used by the API. For example, an API property that starts with a number will be prepended with 'z'. <a href="https://docs.oracle.com/javase/specs/jls/se8/html/jls-3.html#jls-3.9">Java keywords</a> that appear in identifiers may also be replaced.</p>
+<h2 id="building">Building</h2>
+<p>This project is intentionally provided without all of the service code. Normal Maven <code>install</code> and <code>package</code> commands work properly and will regenerate the client. To specifically regenerate the Java service-related files, run:</p>
+<pre><code>mvn generate-sources</code></pre>
+<h2 id="customization">Customization</h2>
+<h3 id="logging">Logging</h3>
+<p>Logging the requests and response to stdout can be enabled by invoking <code>withLoggingEnabled</code> on the <code>RestApiClient</code>. In order to log elsewhere, simply make your own implementation of <code>RestApiClient</code> with <code>logRequest</code> and <code>logResponse</code> overridden.</p>
+<h3 id="http-client">HTTP Client</h3>
+<p>The default HTTP client that is used is the JVM's native <code>HttpUrlConnection</code>. In order to create your own, alternative implementation you must implement <code>com.softlayer.api.http.HttpClientFactory</code>. Once implemented, this can be explicitly set on the <code>RestApiClient</code> by calling <code>setHttpClientFactory</code>. Instead of setting the factory manually, you can also leverage Java's <code>ServiceLoader</code> mechanism to have it used by default. This involves adding the fully qualified class name of your implementation on a single line in a file in the JAR at <code>META-INF/com.softlayer.api.http.HttpClientFactory</code>.</p>
+<h3 id="json-marshalling">JSON Marshalling</h3>
+<p>The default JSON marshaller that is used is <a href="https://github.com/google/gson">Gson</a>. In order to create your own, alternative implementation you must implement <code>com.softlayer.api.json.JsonMarshallerFactory</code>. Once implemented, this can be explicitly set on the <code>RestApiClient</code> by calling <code>setJsonMarshallerFactory</code>. Instead of setting the factory manually, you can also leverage Java's <code>ServiceLoader</code> mechanism to have it used by default. This involves adding the fully qualified class name of your implementation on a single line in a file in the JAR at <code>META-INF/com.softlayer.api.json.JsonMarshallerFactory</code>.</p>
+<h2 id="copyright">Copyright</h2>
+<p>This software is Copyright (c) 2020 The SoftLayer Developer Network. See the bundled LICENSE file for more information.</p>
