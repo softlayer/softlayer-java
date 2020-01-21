@@ -4,7 +4,7 @@
   <artifactId>softlayer-api-client</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.8</version>
+  <version>0.2.9</version>
   <name>SoftLayer API Client for Java</name>
   <description>API client for accessing the SoftLayer API</description>
   <url>http://sldn.softlayer.com</url>
@@ -41,7 +41,7 @@
     <connection>scm:git:git@github.com:softlayer/softlayer-java.git</connection>
     <developerConnection>scm:git:git@github.com:softlayer/softlayer-java.git</developerConnection>
     <url>git@github.com:softlayer/softlayer-java.git</url>
-    <tag>0.2.8</tag>
+    <tag>0.2.9</tag>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,7 +72,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>4.13</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -115,6 +115,7 @@
           <!-- Java 8 will error if we don't skip doclint here -->
           <doclint>none</doclint>
           <source>${java.version}</source>
+          <additionalJOption>--allow-script-in-comments</additionalJOption>
         </configuration>
         <executions>
           <execution>

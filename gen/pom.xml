@@ -5,7 +5,7 @@
   <artifactId>softlayer-api-client-gen</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
-  <version>0.2.8</version>
+  <version>0.2.9</version>
   <name>softlayer-api-client-gen</name>
   <url>http://sldn.softlayer.com</url>
   <licenses>
@@ -34,7 +34,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>4.13</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
