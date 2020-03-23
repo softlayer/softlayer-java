@@ -21,6 +21,7 @@ import org.junit.Test;
 import com.google.gson.reflect.TypeToken;
 import com.softlayer.api.service.Entity;
 import com.softlayer.api.service.TestEntity;
+import com.softlayer.api.service.TestThing;
 
 public class GsonJsonMarshallerFactoryTest {
     
@@ -51,21 +52,22 @@ public class GsonJsonMarshallerFactoryTest {
     public void testRead() throws Exception {
         Entity entity = fromJson(Entity.class,
             "{"
-            + "\"complexType\": \"SoftLayer_TestEntity\","
-            + "\"bar\": \"some string\","
-            + "\"foo\": \"another string\","
-            + "\"baz\": null,"
-            + "\"date\": \"1984-02-25T20:15:25-06:00\","
-            + "\"notApiProperty\": \"bad value\","
-            + "\"child\": {"
-            + "    \"complexType\": \"SoftLayer_TestEntity\","
-            + "    \"bar\": \"child string\""
-            + "},"
-            + "\"moreChildren\": ["
-            + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 1\" },"
-            + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 2\" }"
-            + "]"
-            + "}");
+                + "\"complexType\": \"SoftLayer_TestEntity\","
+                + "\"bar\": \"some string\","
+                + "\"foo\": \"another string\","
+                + "\"baz\": null,"
+                + "\"date\": \"1984-02-25T20:15:25-06:00\","
+                + "\"notApiProperty\": \"bad value\","
+                + "\"child\": {"
+                + "    \"complexType\": \"SoftLayer_TestEntity\","
+                + "    \"bar\": \"child string\""
+                + "},"
+                + "\"moreChildren\": ["
+                + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 1\" },"
+                + "    { \"complexType\": \"SoftLayer_TestEntity\", \"bar\": \"child 2\" }"
+                + "],"
+                + "\"testThing\": {\"complexType\": \"SoftLayer_TestThing\", \"id\": 123}"
+                + "}");
         assertEquals(TestEntity.class, entity.getClass());
         TestEntity obj = (TestEntity) entity;
         assertEquals("some string", obj.getFoo());
@@ -85,6 +87,69 @@ public class GsonJsonMarshallerFactoryTest {
         assertEquals(2, obj.getMoreChildren().size());
         assertEquals("child 1", obj.getMoreChildren().get(0).getFoo());
         assertEquals("child 2", obj.getMoreChildren().get(1).getFoo());
+        assertEquals(TestThing.class, obj.getTestThing().getClass());
+        assertEquals(123, obj.getTestThing().getId().intValue());
+    }
+
+    @Test
+    public void testReadPropertyWithIncorrectComplexTypeCoercesTheType() throws Exception {
+        Entity entity = fromJson(Entity.class,
+            "{"
+                + "\"complexType\": \"SoftLayer_TestEntity\","
+                + "\"testThing\": {\"complexType\": \"SoftLayer_TestEntity\", \"id\": 123, \"foo\": \"unknown!\"}"
+                + "}");
+        assertEquals(TestEntity.class, entity.getClass());
+        TestEntity obj = (TestEntity) entity;
+        assertEquals(0, obj.getUnknownProperties().size());
+        assertEquals(TestThing.class, obj.getTestThing().getClass());
+        assertEquals(123, obj.getTestThing().getId().intValue());
+        assertEquals(1, obj.getTestThing().getUnknownProperties().size());
+        assertEquals("unknown!", obj.getTestThing().getUnknownProperties().get("foo"));
+    }
+
+
+    @Test
+    public void testReadPropertyWithUnknownComplexTypeCoercesTheType() throws Exception {
+        Entity entity = fromJson(Entity.class,
+            "{"
+                + "\"complexType\": \"SoftLayer_TestEntity\","
+                + "\"testThing\": {\"complexType\": \"WhoKnows\", \"id\": 123, \"foo\": \"unknown!\"}"
+                + "}");
+        assertEquals(TestEntity.class, entity.getClass());
+        TestEntity obj = (TestEntity) entity;
+        assertEquals(0, obj.getUnknownProperties().size());
+        assertEquals(TestThing.class, obj.getTestThing().getClass());
+        assertEquals(123, obj.getTestThing().getId().intValue());
+        assertEquals(1, obj.getTestThing().getUnknownProperties().size());
+        assertEquals("unknown!", obj.getTestThing().getUnknownProperties().get("foo"));
+    }
+
+    @Test
+    public void testReadPropertyThrowsExceptionWithoutComplexType() {
+
+        Exception e = assertThrows(RuntimeException.class, () -> {
+            Entity entity = fromJson(Entity.class,
+                "{"
+                    + "\"complexType\": \"SoftLayer_TestEntity\","
+                    + "\"testThing\": {\"id\": 123}"
+                    + "}");
+        });
+
+        assertEquals("Expected 'complexType' as first property", e.getMessage());
+    }
+
+    @Test
+    public void testReadPropertyThrowsExceptioWithComplexTypeNotFirst() {
+
+        Exception e = assertThrows(RuntimeException.class, () -> {
+            Entity entity = fromJson(Entity.class,
+                "{"
+                    + "\"testThing\": {\"id\": 123},"
+                    + "\"complexType\": \"SoftLayer_TestEntity\""
+                    + "}");
+        });
+
+        assertEquals("Expected 'complexType' as first property", e.getMessage());
     }
     
     @Test

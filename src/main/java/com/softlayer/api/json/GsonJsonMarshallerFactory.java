@@ -14,12 +14,8 @@ import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -191,12 +187,12 @@ class GsonJsonMarshallerFactory extends JsonMarshallerFactory implements JsonMar
             //  we're an adapter for. So if we have SoftLayer_Something and a newer release of the
             //  API has a type extending it but we don't have a generated class for it, it will get
             //  properly serialized to a SoftLayer_Something.
+            // If the API returns a type that isn't the same or a subtype of the type class,
+            //  try as best we can to fit the data within the type class.
             Class<? extends Entity> clazz = typeClasses.get(apiTypeName);
             Entity result;
-            if (clazz == null) {
+            if (clazz == null || !typeClass.isAssignableFrom(clazz)) {
                 result = readForThisType(in);
-            } else if (!typeClass.isAssignableFrom(clazz)) {
-                throw new RuntimeException("Expecting " + typeClass + " to be super type of " + clazz);
             } else {
                 result = ((EntityTypeAdapter) gson.getAdapter(clazz)).readForThisType(in);
             }

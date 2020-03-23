@@ -10,7 +10,9 @@ import com.softlayer.api.ResultLimit;
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiProperty;
 import com.softlayer.api.annotation.ApiService;
+import com.softlayer.api.annotation.ApiType;
 
+@ApiType("SoftLayer_TestThing")
 public class TestThing extends Entity {
 
     @ApiProperty(canBeNullOrNotSet = true)
