@@ -11,7 +11,6 @@ import com.softlayer.api.annotation.ApiService;
 import com.softlayer.api.annotation.ApiType;
 import com.softlayer.api.ApiClient;
 import com.softlayer.api.ResponseHandler;
-import com.softlayer.api.ResultLimit;
 
 @ApiType("SoftLayer_TestEntity")
 public class TestEntity extends Entity {
