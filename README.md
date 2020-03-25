@@ -40,20 +40,20 @@ additions to the SoftLayer API.
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.2.9</version>
+  <version>0.3.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.softlayer.api:softlayer-api-client:0.2.9'
+implementation 'com.softlayer.api:softlayer-api-client:0.3.0'
 ```
 
 ### Kotlin
 
 ```kotlin
-compile("com.softlayer.api:softlayer-api-client:0.2.9")
+compile("com.softlayer.api:softlayer-api-client:0.3.0")
 ```
 
 ### Creating a Client
