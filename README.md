@@ -1,7 +1,7 @@
 # SoftLayer API Client for Java
 
 [![Build Status](https://travis-ci.org/softlayer/softlayer-java.svg)](https://travis-ci.org/softlayer/softlayer-java)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.softlayer.api/softlayer-api-client)
+[![Maven Central](https://img.shields.io/maven-central/v/com.softlayer.api/softlayer-api-client)](https://search.maven.org/artifact/com.softlayer.api/softlayer-api-client)
 [![Javadocs](https://www.javadoc.io/badge/com.softlayer.api/softlayer-api-client.svg)](https://www.javadoc.io/doc/com.softlayer.api/softlayer-api-client)
 
 ## Introduction
