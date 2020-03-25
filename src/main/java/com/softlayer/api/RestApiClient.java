@@ -30,7 +30,15 @@ import com.softlayer.api.service.Entity;
  */
 public class RestApiClient implements ApiClient {
 
+    /**
+     * The publically available API URL.
+     */
     public static final String BASE_URL = "https://api.softlayer.com/rest/v3.1/";
+
+    /**
+     * The API URL that should be used when connecting via the softlayer/classic infrastructure private network.
+     */
+    public static final String BASE_SERVICE_URL = "https://api.service.softlayer.com/rest/v3.1/";
     
     static final String BASE_PKG = Entity.class.getPackage().getName();
     
@@ -58,6 +66,9 @@ public class RestApiClient implements ApiClient {
     private boolean loggingEnabled = false;
     private HttpBasicAuthCredentials credentials;
 
+    /**
+     * Create a Rest client that uses the publically available API.
+     */
     public RestApiClient() {
         this(BASE_URL);
     }
