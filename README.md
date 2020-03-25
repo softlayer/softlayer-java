@@ -68,7 +68,14 @@ ApiClient client = new RestApiClient().withCredentials("my user", "my api key");
 ```
 
 If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the
-`RestApiClient`. By default it is set to `https://api.softlayer.com/rest/v3.1/`.
+`RestApiClient`. By default it is set to the public API endpoint, `https://api.softlayer.com/rest/v3.1/`.
+
+If you are using the classic infrastructure private network, you can communicate with the API over that network by using the service URL instead:
+
+```java
+ApiClient client = new RestApiClient(RestApiClient.BASE_SERVICE_URL)
+    .withCredentials("my user", "my api key");
+```
 
 ### Making API Calls
 
