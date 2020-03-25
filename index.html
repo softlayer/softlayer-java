@@ -24,7 +24,10 @@
 <div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.*;</span>
 
 ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withCredentials</span>(<span class="st">&quot;my user&quot;</span>, <span class="st">&quot;my api key&quot;</span>);</code></pre></div>
-<p>If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the <code>RestApiClient</code>. By default it is set to <code>https://api.softlayer.com/rest/v3.1/</code>.</p>
+<p>If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the <code>RestApiClient</code>. By default it is set to the public API endpoint, <code>https://api.softlayer.com/rest/v3.1/</code>.</p>
+<p>If you are using the classic infrastructure private network, you can communicate with the API over that network by using the service URL instead:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>(RestApiClient.<span class="fu">BASE_SERVICE_URL</span>)
+    .<span class="fu">withCredentials</span>(<span class="st">&quot;my user&quot;</span>, <span class="st">&quot;my api key&quot;</span>);</code></pre></div>
 <h3 id="making-api-calls">Making API Calls</h3>
 <p>Once a client is created, it can be used to access services. There are hundreds of services to control your SoftLayer account. A simple one is the <code>Account</code> service. Here's a call to get all of the hardware on the account:</p>
 <div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.service.Account;</span>
