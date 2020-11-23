@@ -177,8 +177,9 @@ public class RestApiClient implements ApiClient {
      * @return String
      */
     protected String getFullUrl(String serviceName, String methodName, String id,
-            ResultLimit resultLimit, String maskString) {
-        StringBuilder url = new StringBuilder(baseUrl + serviceName);
+            ResultLimit resultLimit, String maskString, String filterString) {
+        StringBuilder url = new StringBuilder(baseUrl);
+        url.append(serviceName);
         // ID present? add it
         if (id != null) {
             url.append('/').append(id);
@@ -191,17 +192,32 @@ public class RestApiClient implements ApiClient {
         }
 
         url.append(".json");
+
+        StringBuilder urlParameters = new StringBuilder();
+
         if (resultLimit != null) {
-            url.append("?resultLimit=").append(resultLimit.offset).append(',').append(resultLimit.limit);
+            urlParameters.append("?resultLimit=")
+                    .append(resultLimit.offset)
+                    .append(',')
+                    .append(resultLimit.limit);
         }
         if (maskString != null && !maskString.isEmpty()) {
-            url.append(resultLimit == null ? '?' : '&');
+            urlParameters.append(urlParameters.length() == 0 ? '?' : '&');
             try {
-                url.append("objectMask=").append(URLEncoder.encode(maskString, "UTF-8"));
+                urlParameters.append("objectMask=").append(URLEncoder.encode(maskString, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 throw new RuntimeException(e);
             }
         }
+        if (filterString != null && !filterString.isEmpty()) {
+            urlParameters.append(urlParameters.length() == 0 ? '?' : '&');
+            try {
+                urlParameters.append("objectFilter=").append(URLEncoder.encode(filterString, "UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        url.append(urlParameters);
         return url.toString();
     }
     
@@ -233,17 +249,31 @@ public class RestApiClient implements ApiClient {
     }
 
     class ServiceProxy<S extends Service> implements InvocationHandler {
-        
+
         final Class<S> serviceClass;
         final String id;
         Mask mask;
         String maskString;
+        Mask filter;
+        String filterString;
         ResultLimit resultLimit;
         Integer lastResponseTotalItemCount;
         
         public ServiceProxy(Class<S> serviceClass, String id) {
             this.serviceClass = serviceClass;
             this.id = id;
+        }
+
+        protected String getFilterString() throws UnsupportedEncodingException {
+            if (filter != null) {
+                Map<String, ?> filterMap = filter.getFilterMap();
+                if (!filterMap.isEmpty()) {
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    getJsonMarshallerFactory().getJsonMarshaller().toJson(filterMap, out);
+                    return out.toString("UTF-8");
+                }
+            }
+            return filterString;
         }
         
         public void logRequestAndWriteBody(HttpClient client, String httpMethod, String url, Object[] args) {
@@ -324,7 +354,11 @@ public class RestApiClient implements ApiClient {
             final String httpMethod = getHttpMethodFromMethodName(methodName);
             String methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
-                    methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
+                    methodName,
+                    methodId,
+                    resultLimit,
+                    mask == null ? maskString : mask.getMask(),
+                    getFilterString());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
 
             // Invoke with response
@@ -360,7 +394,11 @@ public class RestApiClient implements ApiClient {
             final String httpMethod = getHttpMethodFromMethodName(methodName);
             String methodId = methodInfo.instanceRequired() ? this.id : null;
             final String url = getFullUrl(serviceClass.getAnnotation(ApiService.class).value(),
-                    methodName, methodId, resultLimit, mask == null ? maskString : mask.getMask());
+                    methodName,
+                    methodId,
+                    resultLimit,
+                    mask == null ? maskString : mask.getMask(),
+                    getFilterString());
             final HttpClient client = getHttpClientFactory().getHttpClient(credentials, httpMethod, url, HEADERS);
 
             Callable<Void> setupBody = () -> {
@@ -456,6 +494,8 @@ public class RestApiClient implements ApiClient {
                 ServiceProxy<S> asyncProxy = new ServiceProxy<>(serviceClass, id);
                 asyncProxy.mask = mask;
                 asyncProxy.maskString = maskString;
+                asyncProxy.filter = filter;
+                asyncProxy.filterString = filterString;
                 asyncProxy.resultLimit = resultLimit;
                 return Proxy.newProxyInstance(getClass().getClassLoader(),
                     new Class<?>[] { method.getReturnType() }, asyncProxy);
@@ -485,6 +525,33 @@ public class RestApiClient implements ApiClient {
             } else if ("clearMask".equals(method.getName())) {
                 mask = null;
                 maskString = null;
+                return null;
+            } else if ("withNewFilter".equals(method.getName()) && noParams) {
+                filter = (Mask) method.getReturnType().newInstance();
+                filterString = null;
+                return filter;
+            } else if ("withFilter".equals(method.getName()) && noParams) {
+                if (filter == null) {
+                    filter = (Mask) method.getReturnType().newInstance();
+                    filterString = null;
+                }
+                return filter;
+            } else if ("setFilter".equals(method.getName()) &&args != null
+                    && args.length == 1 && args[0] instanceof String) {
+                filter = null;
+                filterString = args[0].toString();
+                return null;
+            } else if ("setFilter".equals(method.getName()) && args != null
+                    && args.length == 1 && args[0] instanceof Mask) {
+                filter = (Mask) args[0];
+                filterString = null;
+                return null;
+            } else if ("setFilter".equals(method.getName()) && args != null
+                    && args.length == 1 && args[0] == null) {
+                throw new IllegalArgumentException("Cannot set null filter. Use clearFilter to remove a filter.");
+            } else if ("clearFilter".equals(method.getName())) {
+                filter = null;
+                filterString = null;
                 return null;
             } else if ("setResultLimit".equals(method.getName()) &&
                     method.getDeclaringClass() == ResultLimitable.class) {
