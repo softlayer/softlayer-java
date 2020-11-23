@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import com.softlayer.api.ApiClient;
+import com.softlayer.api.Property;
+import com.softlayer.api.Property.StringProperty;
 import com.softlayer.api.ResponseHandler;
 import com.softlayer.api.ResultLimit;
 import com.softlayer.api.annotation.ApiMethod;
@@ -117,19 +119,20 @@ public class TestThing extends Entity {
 
     public static class Mask extends Entity.Mask {
 
-        public Mask id() {
-            withLocalProperty("id");
-            return this;
+        public StringProperty id() {
+            // withLocalProperty("id");
+            // return this
+            return withStringProperty("id");
         }
 
-        public Mask first() {
-            withLocalProperty("first");
-            return this;
+        public StringProperty first() {
+            // withStringProperty("first");
+            return withStringProperty("first");
         }
 
-        public Mask second() {
-            withLocalProperty("second");
-            return this;
+        public StringProperty second() {
+            // withStringProperty("second");
+            return withStringProperty("second");
         }
 
         public Mask testEntity() {

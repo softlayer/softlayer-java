@@ -4,10 +4,10 @@ import static org.junit.Assert.*;
 
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import com.softlayer.api.http.FakeHttpClientFactory;
 import com.softlayer.api.json.GsonJsonMarshallerFactoryTest;
 import com.softlayer.api.service.TestEntity;
@@ -20,63 +20,57 @@ public class MaskTest {
     @Test
     public void testWithMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
+            Collections.<String, List<String>>emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
-
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
-        service.withMask().foo().child().date();
+        service.withMask().foo();
+        service.withMask().child().date();
         service.withMask().child().baz();
-
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=" + URLEncoder.encode(service.withMask().getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
-
+    
     @Test
     public void testSetObjectMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
+            Collections.<String, List<String>>emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
-
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         TestEntity.Mask mask = new TestEntity.Mask();
-        mask.foo().child().date();
+        mask.foo();
+        mask.child().date();
         mask.child().baz();
         service.setMask(mask);
-
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=" + URLEncoder.encode(mask.getMask(), "UTF-8"), http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
-
+    
     @Test
-    public void testSetStringMask() {
+    public void testSetStringMask() throws Exception {
         FakeHttpClientFactory http = new FakeHttpClientFactory(200,
-            Collections.emptyMap(), "\"some response\"");
-        RestApiClient client = new RestApiClient("http://example.com/")
-            .withCredentials("user", "key");
+            Collections.<String, List<String>>emptyMap(), "\"some response\"");
+        RestApiClient client = new RestApiClient("http://example.com/").withCredentials("user", "key");
         client.setHttpClientFactory(http);
-
         TestEntity entity = new TestEntity();
         entity.setFoo("blah");
         TestEntity.Service service = TestEntity.service(client);
         service.setMask("yay-a-mask");
-
         assertEquals("some response", service.doSomethingStatic(123L, entity));
         assertEquals("http://example.com/SoftLayer_TestEntity/doSomethingStatic.json"
             + "?objectMask=yay-a-mask", http.fullUrl);
         assertTrue(http.invokeSyncCalled);
     }
+    
 
     @Test(expected = IllegalArgumentException.class)
     public void testMaskMustNotBeNull() {
