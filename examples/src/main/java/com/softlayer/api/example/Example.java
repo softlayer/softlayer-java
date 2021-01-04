@@ -17,7 +17,14 @@ public abstract class Example {
             baseUrl += '/';
         }
 
-        run(new RestApiClient(baseUrl).withCredentials(args[0], args[1]));
+        RestApiClient client;
+        // mvn -e -q compile exec:java -Dexec.args="QuickTest Bearer eyJraWQ.....
+        if (args[0].trim().equals("Bearer")) {
+            client = new RestApiClient(baseUrl).withBearerToken(args[1]);
+        } else {
+            client = new RestApiClient(baseUrl).withCredentials(args[0], args[1]);
+        }
+        run(client);
     }
 
     /** Run the example with the given client */
