@@ -89,7 +89,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
 
     class BuiltInHttpClient implements HttpClient, HttpResponse {
 
-        final HttpBasicAuthCredentials credentials;
+        final HttpCredentials credentials;
         final String method;
         final String fullUrl;
         final Map<String, List<String>> headers;
@@ -101,11 +101,7 @@ class BuiltInHttpClientFactory extends ThreadPooledHttpClientFactory {
             String fullUrl,
             Map<String, List<String>> headers
         ) {
-            // We only support basic auth
-            if (credentials != null && !(credentials instanceof HttpBasicAuthCredentials)) {
-                throw new UnsupportedOperationException("Only basic auth is supported, not " + credentials.getClass());
-            }
-            this.credentials = (HttpBasicAuthCredentials) credentials;
+            this.credentials = credentials;
             this.method = method;
             this.fullUrl = fullUrl;
             this.headers = headers;

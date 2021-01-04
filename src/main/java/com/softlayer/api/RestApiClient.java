@@ -18,7 +18,9 @@ import java.util.concurrent.TimeoutException;
 
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiService;
+import com.softlayer.api.http.HttpCredentials;
 import com.softlayer.api.http.HttpBasicAuthCredentials;
+import com.softlayer.api.http.HttpBearerCredentials;
 import com.softlayer.api.http.HttpClient;
 import com.softlayer.api.http.HttpClientFactory;
 import com.softlayer.api.http.HttpResponse;
@@ -64,7 +66,7 @@ public class RestApiClient implements ApiClient {
     private HttpClientFactory httpClientFactory;
     private JsonMarshallerFactory jsonMarshallerFactory;
     private boolean loggingEnabled = false;
-    private HttpBasicAuthCredentials credentials;
+    private HttpCredentials credentials;
 
     /**
      * Create a Rest client that uses the publically available API.
@@ -114,6 +116,7 @@ public class RestApiClient implements ApiClient {
         this.loggingEnabled = loggingEnabled;
     }
     
+    @Override
     public RestApiClient withLoggingEnabled() {
         this.loggingEnabled = true;
         return this;
@@ -141,7 +144,14 @@ public class RestApiClient implements ApiClient {
         return this;
     }
     
-    public HttpBasicAuthCredentials getCredentials() {
+    @Override
+    public RestApiClient withBearerToken(String token) {
+        credentials = new HttpBearerCredentials(token);
+        return this;
+    }
+
+    @Override
+    public HttpCredentials getCredentials() {
         return credentials;
     }
     
