@@ -24,6 +24,14 @@ public class BuiltInHttpClientFactoryTest {
     }
 
     @Test
+    public void testGetThreadPoolLazyLoading() {
+        BuiltInHttpClientFactory factory = new BuiltInHttpClientFactory();
+        ExecutorService threadPool = factory.getThreadPool();
+        assertNotNull(threadPool);
+        assertEquals(threadPool, factory.getThreadPool());
+    }
+
+    @Test
     public void testSetThreadPoolShutsDownNonUserDefined() {
         BuiltInHttpClientFactory factory = new BuiltInHttpClientFactory();
         ExecutorService threadPool = mock(ExecutorService.class);

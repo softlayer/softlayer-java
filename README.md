@@ -40,20 +40,20 @@ additions to the SoftLayer API.
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.3.1</version>
+  <version>0.3.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.softlayer.api:softlayer-api-client:0.3.1'
+implementation 'com.softlayer.api:softlayer-api-client:0.3.2'
 ```
 
 ### Kotlin
 
 ```kotlin
-compile("com.softlayer.api:softlayer-api-client:0.3.1")
+compile("com.softlayer.api:softlayer-api-client:0.3.2")
 ```
 
 ### Creating a Client
@@ -61,10 +61,22 @@ compile("com.softlayer.api:softlayer-api-client:0.3.1")
 All clients are instances of `ApiClient`. Currently there is only one implementation, the `RestApiClient`. Simply
 instantiate it and provide your credentials:
 
+
+#### Username and API Key
+For using a Classic Infrastructure or IBM Cloud API key. When using the IBM Cloud Api key, your username is litterally `apikey`, more information about that can be found on the SLDN [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#cloud-api) article.
+
 ```java
 import com.softlayer.api.*;
 
 ApiClient client = new RestApiClient().withCredentials("my user", "my api key");
+```
+
+#### Acesses Token
+Information on how to get a temoprary api token can be found on the SLDN [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token) article.
+
+```java
+import com.softlayer.api.*;
+ApiClient client = new RestApiClient().withBearerToken("qqqqwwwweeeaaassddd....");
 ```
 
 If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the
@@ -296,4 +308,4 @@ fully qualified class name of your implementation on a single line in a file in 
 
 ## Copyright
 
-This software is Copyright (c) 2020 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
+This software is Copyright (c) 2021 The SoftLayer Developer Network. See the bundled LICENSE file for more information.
