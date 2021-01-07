@@ -1,9 +1,13 @@
 package com.softlayer.api.http;
 
-/** HTTP bearer authorization support for bearer token fromhttps://iam.cloud.ibm.com/identity/token */
+/** HTTP Bearer authorization support for IBM IAM Tokens.
+ *
+ * @see <a href="https://cloud.ibm.com/apidocs/iam-identity-token-api">IAM Tokens</a>
+ * @see <a href="https://sldn.softlayer.com/article/authenticating-softlayer-api/">Authenticating SoftLayer API</a>
+ */
 public class HttpBearerCredentials implements HttpCredentials {
 
-    public final String token;
+    protected final String token;
     
     public HttpBearerCredentials(String token) {
         this.token = token;
