@@ -16,26 +16,19 @@ import com.softlayer.api.http.BuiltInHttpClientFactory.BuiltInHttpClient;
 public class BuiltInHttpClientFactoryTest {
 
     @Test
-    public void testGetHttpClientWithoutBasicAuth() {
-        try {
-            new BuiltInHttpClientFactory().getHttpClient(
-                new HttpCredentials() { },
-                "GET",
-                "http://example.com",
-                Collections.emptyMap()
-            );
-            fail();
-        } catch (UnsupportedOperationException e) {
-            assertTrue(e.getMessage().contains("basic auth"));
-        }
-    }
-    
-    @Test
     public void testGetThreadPoolDefaultsToDaemonThreads() throws Exception {
         boolean daemon = new BuiltInHttpClientFactory().getThreadPool().submit(
             () -> Thread.currentThread().isDaemon()
         ).get();
         assertTrue(daemon);
+    }
+
+    @Test
+    public void testGetThreadPoolLazyLoading() {
+        BuiltInHttpClientFactory factory = new BuiltInHttpClientFactory();
+        ExecutorService threadPool = factory.getThreadPool();
+        assertNotNull(threadPool);
+        assertEquals(threadPool, factory.getThreadPool());
     }
 
     @Test
