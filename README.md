@@ -71,7 +71,7 @@ import com.softlayer.api.*;
 ApiClient client = new RestApiClient().withCredentials("my user", "my api key");
 ```
 
-#### Acesses Token
+#### Access Token
 Information on how to get a temoprary api token can be found on the SLDN [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token) article.
 
 ```java
