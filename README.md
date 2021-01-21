@@ -65,10 +65,12 @@ instantiate it and provide your credentials:
 #### Username and API Key
 For using a Classic Infrastructure or IBM Cloud API key. When using the IBM Cloud Api key, your username is the literal string `apikey`, more information about that can be found on the SLDN [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#cloud-api) article.
 
+:warning: Make sure to avoid hard coding your username and API key when using the client! Always pull credentials from the environment, secure config, or other source.
+
 ```java
 import com.softlayer.api.*;
 
-ApiClient client = new RestApiClient().withCredentials("my user", "my api key");
+ApiClient client = new RestApiClient().withCredentials(myUser, myApiKey);
 ```
 
 #### Access Token
