@@ -5,6 +5,11 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.concurrent.Future;
 
+import com.softlayer.api.ApiClient;
+import com.softlayer.api.Property;
+import com.softlayer.api.Property.DateTimeProperty;
+import com.softlayer.api.Property.StringProperty;
+import com.softlayer.api.ResponseHandler;
 import com.softlayer.api.annotation.ApiMethod;
 import com.softlayer.api.annotation.ApiProperty;
 import com.softlayer.api.annotation.ApiService;
@@ -198,19 +203,17 @@ public class TestEntity extends Entity {
 
     public static class Mask extends Entity.Mask {
 
-        public Mask foo() {
-            withLocalProperty("foo");
-            return this;
+        
+        public StringProperty foo() {
+            return withStringProperty("foo");
         }
-
-        public Mask baz() {
-            withLocalProperty("baz");
-            return this;
+        
+        public StringProperty baz() {
+            return withStringProperty("baz");
         }
-
-        public Mask date() {
-            withLocalProperty("date");
-            return this;
+        
+        public DateTimeProperty date() {
+            return withDateTimeProperty("date");
         }
 
         public Mask child() {

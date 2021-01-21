@@ -3,6 +3,7 @@ package com.softlayer.api.example;
 import com.softlayer.api.ApiClient;
 import com.softlayer.api.service.Account;
 import com.softlayer.api.service.Hardware;
+import com.softlayer.api.service.software.Description;
 import com.softlayer.api.service.virtual.Guest;
 
 /** List all physical and virtual servers on an account */
@@ -13,23 +14,23 @@ public class ListServers extends Example {
         Account.Service service = Account.service(client);
         
         // To get specific information on an account (servers in this case) a mask is provided
-        service.withMask().hardware().
-            fullyQualifiedDomainName().
-            primaryIpAddress().
-            primaryBackendIpAddress();
-        service.withMask().hardware().operatingSystem().softwareLicense().softwareDescription().
-            manufacturer().
-            name().
-            version();
-        service.withMask().virtualGuests().
-            fullyQualifiedDomainName().
-            primaryIpAddress().
-            primaryBackendIpAddress();
-        service.withMask().virtualGuests().operatingSystem().softwareLicense().softwareDescription().
-            manufacturer().
-            name().
-            version();
-        
+        Hardware.Mask hardwareMask = service.withMask().hardware();
+        hardwareMask.fullyQualifiedDomainName();
+        hardwareMask.primaryIpAddress();
+        hardwareMask.primaryBackendIpAddress();
+        Description.Mask descriptionMask = hardwareMask.operatingSystem().softwareLicense().softwareDescription();
+        descriptionMask.manufacturer();
+        descriptionMask.name();
+        descriptionMask.version();
+        Guest.Mask guestMask = service.withMask().virtualGuests();
+        guestMask.fullyQualifiedDomainName();
+        guestMask.primaryIpAddress();
+        guestMask.primaryBackendIpAddress();
+        descriptionMask = guestMask.operatingSystem().softwareLicense().softwareDescription();
+        descriptionMask.manufacturer();
+        descriptionMask.name();
+        descriptionMask.version();
+
         // Calling getObject will now use the mask
         Account account = service.getObject();
 
