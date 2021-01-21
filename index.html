@@ -23,9 +23,10 @@
 <p>All clients are instances of <code>ApiClient</code>. Currently there is only one implementation, the <code>RestApiClient</code>. Simply instantiate it and provide your credentials:</p>
 <h4 id="username-and-api-key">Username and API Key</h4>
 <p>For using a Classic Infrastructure or IBM Cloud API key. When using the IBM Cloud Api key, your username is the literal string <code>apikey</code>, more information about that can be found on the SLDN <a href="https://sldn.softlayer.com/article/authenticating-softlayer-api/#cloud-api">Authenticating to the SoftLayer API</a> article.</p>
+<p>:warning: Make sure to avoid hard coding your username and API key when using the client! Always pull credentials from the environment, secure config, or other source.</p>
 <div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.*;</span>
 
-ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withCredentials</span>(<span class="st">&quot;my user&quot;</span>, <span class="st">&quot;my api key&quot;</span>);</code></pre></div>
+ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withCredentials</span>(myUser, myApiKey);</code></pre></div>
 <h4 id="access-token">Access Token</h4>
 <p>Information on how to get a temoprary api token can be found on the SLDN <a href="https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token">Authenticating to the SoftLayer API</a> article.</p>
 <div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">import com.softlayer.api.*;</span>
