@@ -1,19 +1,19 @@
 # SoftLayer API Client for Java
 
-![Java CI](https://github.com/softlayer/softlayer-java/workflows/Java%20CI/badge.svg)
+[![Java CI](https://github.com/softlayer/softlayer-java/actions/workflows/maven.yml/badge.svg)](https://github.com/softlayer/softlayer-java/actions/workflows/maven.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.softlayer.api/softlayer-api-client)](https://search.maven.org/artifact/com.softlayer.api/softlayer-api-client)
 [![Javadocs](https://www.javadoc.io/badge/com.softlayer.api/softlayer-api-client.svg)](https://www.javadoc.io/doc/com.softlayer.api/softlayer-api-client)
 
 ## Introduction
 
-This library provides a JVM client for the [SoftLayer API](http://sldn.softlayer.com/article/SoftLayer-API-Overview). It
+This library provides a JVM client for the [SoftLayer API](https://sldn.softlayer.com/article/getting-started/). It
 has code generated and compiled via Maven. The client can work with any Java 8+ runtime. It uses the code generation
 project in `gen/` to generate the service and type related code. Although likely to work in resource-constrained
 environments (i.e. Android, J2ME, etc), using this is not recommended; Use the
-[REST](http://sldn.softlayer.com/article/REST) API instead.
+[REST](https://sldn.softlayer.com/article/rest/) API instead.
 
 By default the HTTP client is the Java `HttpUrlConnection` and the JSON marshalling is done by
-[Gson](https://code.google.com/p/google-gson/). Both of these pieces can be exchanged for alternative implementations
+[Gson](https://github.com/google/gson). Both of these pieces can be exchanged for alternative implementations
 (see below).
 
 The `examples/` project has sample uses of the API. It can be executed from Maven while inside the `examples/` folder
@@ -40,20 +40,20 @@ additions to the SoftLayer API.
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.3.2</version>
+  <version>0.3.3</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.softlayer.api:softlayer-api-client:0.3.2'
+implementation 'com.softlayer.api:softlayer-api-client:0.3.3'
 ```
 
 ### Kotlin
 
 ```kotlin
-compile("com.softlayer.api:softlayer-api-client:0.3.2")
+compile("com.softlayer.api:softlayer-api-client:0.3.3")
 ```
 
 ### Creating a Client
@@ -74,21 +74,23 @@ ApiClient client = new RestApiClient().withCredentials(myUser, myApiKey);
 ```
 
 #### Access Token
-Information on how to get a temoprary api token can be found on the SLDN [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token) article.
+Information on how to get a temoprary api token can be found on the SLDN
+[Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token)
+article.
 
 ```java
 import com.softlayer.api.*;
-ApiClient client = new RestApiClient().withBearerToken("qqqqwwwweeeaaassddd....");
+ApiClient client = new RestApiClient().withBearerToken(myBearerToken);
 ```
 
 If the end point isn't at the normal SoftLayer API, you can provide the prefix to the constructor of the
-`RestApiClient`. By default it is set to the public API endpoint, `https://api.softlayer.com/rest/v3.1/`.
+`RestApiClient`. By default, it is set to the public API endpoint, `https://api.softlayer.com/rest/v3.1/`.
 
 If you are using the classic infrastructure private network, you can communicate with the API over that network by using the service URL instead:
 
 ```java
 ApiClient client = new RestApiClient(RestApiClient.BASE_SERVICE_URL)
-    .withCredentials("my user", "my api key");
+    .withCredentials(myUser, myApiKey);
 ```
 
 ### Making API Calls
@@ -170,7 +172,7 @@ for (Vlan vlan : service.getObject().getNetworkVlans()) {
 
 All values of a type can be masked upon. If a value represents a primitive or collection of primitives, the same mask
 it is called on is returned. Otherwise the mask of the other type is given. These translate into SoftLayer's
-[string-based object mask format](http://sldn.softlayer.com/article/Object-Masks). A string or an instance of a mask
+[string-based object mask format](https://sldn.softlayer.com/article/object-masks/). A string or an instance of a mask
 can be given directly by calling `setMask` on the service. Note, when object masks are added on a service object, they
 will be sent with every service call unless removed via `clearMask` or overwritten via `withNewMask` or `setMask`.
 
