@@ -1,17 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <prerequisites>
+    <maven>3.3.9</maven>
+  </prerequisites>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client-examples</artifactId>
   <packaging>jar</packaging>
   <!-- Please keep version in sync with README -->
   <version>0.3.3</version>
   <name>softlayer-api-client-examples</name>
-  <url>http://sldn.softlayer.com</url>
+  <url>https://sldn.softlayer.com/</url>
   <licenses>
     <license>
       <name>The MIT License (MIT)</name>
-      <url>http://opensource.org/licenses/MIT</url>
+      <url>https://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
   </licenses>

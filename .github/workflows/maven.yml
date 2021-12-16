@@ -9,12 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [8, 11, 16]
+        java: [8, 11, 16, 17]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Set up JDK
-        uses: actions/setup-java@v2.3.0
+        uses: actions/setup-java@v2.4.0
         with:
           distribution: 'temurin'
           java-version: ${{matrix.java}}
