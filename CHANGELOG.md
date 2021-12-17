@@ -33,12 +33,12 @@ ApiClient client = new RestApiClient().withBearerToken("qqqqwwwweeeaaassddd...."
 ### Changed
 * Updated services and types.
 
-## [0.3.1] - 2021-11-09
+## [0.3.1] - 2020-11-09
 
 ### Changed
 * Updated services and types.
 
-## [0.3.0] - 2021-03-25
+## [0.3.0] - 2020-03-25
 
 ### Added
 * Added a new `RestApiClient.BASE_SERVICE_URL` constant to use the client with the classic infrastructure private
