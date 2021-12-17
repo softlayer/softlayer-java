@@ -40,20 +40,20 @@ additions to the SoftLayer API.
 <dependency>
   <groupId>com.softlayer.api</groupId>
   <artifactId>softlayer-api-client</artifactId>
-  <version>0.3.3</version>
+  <version>0.3.4</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'com.softlayer.api:softlayer-api-client:0.3.3'
+implementation 'com.softlayer.api:softlayer-api-client:0.3.4'
 ```
 
 ### Kotlin
 
 ```kotlin
-compile("com.softlayer.api:softlayer-api-client:0.3.3")
+compile("com.softlayer.api:softlayer-api-client:0.3.4")
 ```
 
 ### Creating a Client
@@ -74,7 +74,7 @@ ApiClient client = new RestApiClient().withCredentials(myUser, myApiKey);
 ```
 
 #### Access Token
-Information on how to get a temoprary api token can be found on the SLDN
+Information on how to get a temporary api token can be found on the SLDN
 [Authenticating to the SoftLayer API](https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token)
 article.
 
