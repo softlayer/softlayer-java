@@ -75,6 +75,7 @@ public class Meta {
         public String serviceDoc;
         public Map<String, Method> methods = Collections.emptyMap();
         public boolean noservice;
+        public boolean deprecated;
     }
 
     /**
@@ -86,6 +87,7 @@ public class Meta {
         public boolean typeArray;
         public PropertyForm form;
         public String doc;
+        public boolean deprecated;
     }
     
     public enum PropertyForm {
@@ -109,6 +111,7 @@ public class Meta {
         public boolean filterable;
         public boolean maskable;
         public List<Parameter> parameters = Collections.emptyList();
+        public boolean deprecated;
     }
 
     /**

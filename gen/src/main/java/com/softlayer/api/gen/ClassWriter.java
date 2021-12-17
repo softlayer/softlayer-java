@@ -134,6 +134,10 @@ public class ClassWriter extends JavaWriter {
         if (property.meta.doc != null) {
             emitJavadoc(property.meta.doc.replace("\n", "<br />\n"));
         }
+
+        if (property.meta.deprecated) {
+            emitAnnotation("Deprecated");
+        }
         
         Map<String, Object> params = new HashMap<>(2);
         if (!property.name.equals(property.meta.name)) {
@@ -267,6 +271,10 @@ public class ClassWriter extends JavaWriter {
             javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "services/" + type.meta.name +
                 "/" + method.meta.name + "\">" + type.meta.name + "::" + method.meta.name + "</a>";
             emitJavadoc(javadoc);
+
+            if (method.meta.deprecated) {
+                emitAnnotation("Deprecated");
+            }
             
             Map<String, Object> params = new HashMap<>(2);
             if (!method.name.equals(method.meta.name)) {
@@ -279,6 +287,10 @@ public class ClassWriter extends JavaWriter {
         } else {
             // Otherwise, just a javadoc link
             emitJavadoc("Async version of {@link Service#" + method.name + "}");
+
+            if (method.meta.deprecated) {
+                emitAnnotation("Deprecated");
+            }
         }
         
         String[] parameters = new String[method.parameters.size() * 2];
@@ -296,6 +308,9 @@ public class ClassWriter extends JavaWriter {
         
         // Async has an extra callback method
         if (async) {
+            if (method.meta.deprecated) {
+                emitAnnotation("Deprecated");
+            }
             parameters = Arrays.copyOf(parameters, parameters.length + 2);
             parameters[parameters.length - 2] = TYPE_RESPONSE_HANDLER + '<' + method.javaType + '>';
             parameters[parameters.length - 1] = "callback";
@@ -324,6 +339,10 @@ public class ClassWriter extends JavaWriter {
             javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "services/" + type.meta.name +
                 "/" + name + "\">" + type.meta.name + "::" + name + "</a>";
             emitJavadoc(javadoc);
+
+            if (property.meta.deprecated) {
+                emitAnnotation("Deprecated");
+            }
             
             // Instance is only required if it's not an account property
             if ("SoftLayer_Account".equals(type.meta.name)) {
@@ -334,6 +353,10 @@ public class ClassWriter extends JavaWriter {
         } else {
             // Otherwise, just a javadoc link
             emitJavadoc("Async version of {@link Service#" + name + "}");
+
+            if (property.meta.deprecated) {
+                emitAnnotation("Deprecated");
+            }
         }
         
         String returnType = property.javaType;
@@ -355,17 +378,12 @@ public class ClassWriter extends JavaWriter {
         emitPackage(type.packageName);
         
         emitTypeImports();
-        
-        // Javadoc
-        String javadoc = type.meta.typeDoc != null ? type.meta.typeDoc : type.meta.serviceDoc;
-        if (javadoc == null) {
-            javadoc = "";
-        } else {
-            javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
+
+        emitJavadoc(getTypeJavadoc());
+
+        if (type.meta.deprecated) {
+            emitAnnotation("Deprecated");
         }
-        javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "datatypes/" +
-                type.meta.name + "\">" + type.meta.name + "</a>";
-        emitJavadoc(javadoc);
         
         // Each type has a type attribute
         emitAnnotation("ApiType", stringLiteral(type.meta.name));
@@ -431,6 +449,18 @@ public class ClassWriter extends JavaWriter {
 
         emitMask().endType();
         return this;
+    }
+
+    protected String getTypeJavadoc() {
+        String javadoc = type.meta.typeDoc != null ? type.meta.typeDoc : type.meta.serviceDoc;
+        if (javadoc == null) {
+            javadoc = "";
+        } else {
+            javadoc = javadoc.replace("\n", "<br />\n") + "\n\n";
+        }
+        javadoc += "@see <a href=\"" + SLDN_URL_BASE_PATH + "datatypes/" +
+            type.meta.name + "\">" + type.meta.name + "</a>";
+        return javadoc;
     }
     
     public ClassWriter emitTypeImports() throws IOException {
