@@ -13,12 +13,12 @@
 <div class="sourceCode" id="cb2"><pre class="sourceCode xml"><code class="sourceCode xml"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">&lt;dependency&gt;</span></a>
 <a class="sourceLine" id="cb2-2" title="2">  <span class="kw">&lt;groupId&gt;</span>com.softlayer.api<span class="kw">&lt;/groupId&gt;</span></a>
 <a class="sourceLine" id="cb2-3" title="3">  <span class="kw">&lt;artifactId&gt;</span>softlayer-api-client<span class="kw">&lt;/artifactId&gt;</span></a>
-<a class="sourceLine" id="cb2-4" title="4">  <span class="kw">&lt;version&gt;</span>0.3.3<span class="kw">&lt;/version&gt;</span></a>
+<a class="sourceLine" id="cb2-4" title="4">  <span class="kw">&lt;version&gt;</span>0.3.4<span class="kw">&lt;/version&gt;</span></a>
 <a class="sourceLine" id="cb2-5" title="5"><span class="kw">&lt;/dependency&gt;</span></a></code></pre></div>
 <h3 id="gradle">Gradle</h3>
-<pre class="groovy"><code>implementation &#39;com.softlayer.api:softlayer-api-client:0.3.3&#39;</code></pre>
+<pre class="groovy"><code>implementation &#39;com.softlayer.api:softlayer-api-client:0.3.4&#39;</code></pre>
 <h3 id="kotlin">Kotlin</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode kotlin"><code class="sourceCode kotlin"><a class="sourceLine" id="cb4-1" title="1">compile(<span class="st">&quot;com.softlayer.api:softlayer-api-client:0.3.3&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode kotlin"><code class="sourceCode kotlin"><a class="sourceLine" id="cb4-1" title="1">compile(<span class="st">&quot;com.softlayer.api:softlayer-api-client:0.3.4&quot;</span>)</a></code></pre></div>
 <h3 id="creating-a-client">Creating a Client</h3>
 <p>All clients are instances of <code>ApiClient</code>. Currently there is only one implementation, the <code>RestApiClient</code>. Simply instantiate it and provide your credentials:</p>
 <h4 id="username-and-api-key">Username and API Key</h4>
@@ -28,7 +28,7 @@
 <a class="sourceLine" id="cb5-2" title="2"></a>
 <a class="sourceLine" id="cb5-3" title="3">ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withCredentials</span>(myUser, myApiKey);</a></code></pre></div>
 <h4 id="access-token">Access Token</h4>
-<p>Information on how to get a temoprary api token can be found on the SLDN <a href="https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token">Authenticating to the SoftLayer API</a> article.</p>
+<p>Information on how to get a temporary api token can be found on the SLDN <a href="https://sldn.softlayer.com/article/authenticating-softlayer-api/#temp-token">Authenticating to the SoftLayer API</a> article.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode java"><code class="sourceCode java"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">import</span><span class="im"> com.softlayer.api.*;</span></a>
 <a class="sourceLine" id="cb6-2" title="2">ApiClient client = <span class="kw">new</span> <span class="fu">RestApiClient</span>().<span class="fu">withBearerToken</span>(myBearerToken);</a></code></pre></div>
 <p>If the end point isn’t at the normal SoftLayer API, you can provide the prefix to the constructor of the <code>RestApiClient</code>. By default, it is set to the public API endpoint, <code>https://api.softlayer.com/rest/v3.1/</code>.</p>
