@@ -85,7 +85,9 @@ public class OrderVirtualServer extends Example {
                 guest.getId(), minutesToWait);
         } else {
             // Using a mask, we can ask for the operating system password
-            service.withNewMask().primaryIpAddress().operatingSystem().passwords();
+            Guest.Mask mask = service.withNewMask();
+            mask.primaryIpAddress();
+            mask.operatingSystem().passwords();
             guest = service.getObject();
             if (guest.getOperatingSystem() == null) {
                 System.out.println("Unable to find operating system on completed guest");
